@@ -6,20 +6,53 @@
 
   <title>Bruce</title>
 
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
+  <!-- FONDO -->
+
   <div class="background">
-    <div class="glow glow-1"></div>
-    <div class="glow glow-2"></div>
-    <div class="grid"></div>
+
+    <div class="night-glow"></div>
+
+    <div class="moon"></div>
+
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+
+    <div class="city">
+
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+
+    </div>
+
+    <div class="rain"></div>
+
   </div>
+
+
+  <!-- APLICACIÓN -->
 
   <main class="bruce-app">
 
-    <!-- HEADER -->
+
+    <!-- CABECERA -->
 
     <header class="topbar">
 
@@ -30,19 +63,32 @@
         </div>
 
         <div class="brand-text">
+
           <h1>BRUCE</h1>
-          <span>PERSONAL AI SYSTEM</span>
+
+          <span>
+            PRIVATE INTELLIGENCE
+          </span>
+
         </div>
 
       </div>
+
 
       <div class="status">
 
         <span class="status-dot"></span>
 
         <div>
-          <strong>ONLINE</strong>
-          <small>Cloud System</small>
+
+          <strong>
+            ONLINE
+          </strong>
+
+          <small>
+            SECURE CHANNEL
+          </small>
+
         </div>
 
       </div>
@@ -50,13 +96,30 @@
     </header>
 
 
+    <!-- LÍNEA DE ESTADO -->
+
+    <div class="system-line">
+
+      <span></span>
+
+      <p>
+        WAYNE SYSTEMS // ENCRYPTED CONNECTION
+      </p>
+
+      <span></span>
+
+    </div>
+
+
     <!-- CONTENIDO -->
 
     <section class="main-content">
 
-      <!-- PANEL LATERAL -->
+
+      <!-- PANEL IZQUIERDO -->
 
       <aside class="side-panel">
+
 
         <div class="system-card">
 
@@ -64,40 +127,81 @@
             SYSTEM STATUS
           </div>
 
-          <div class="system-row">
-            <span>AI</span>
-            <strong class="online">ONLINE</strong>
-          </div>
 
           <div class="system-row">
-            <span>MEMORY</span>
-            <strong class="online">ACTIVE</strong>
+
+            <span>
+              ARTIFICIAL INTELLIGENCE
+            </span>
+
+            <strong class="online">
+              ONLINE
+            </strong>
+
           </div>
 
-          <div class="system-row">
-            <span>VOICE</span>
-            <strong class="online">READY</strong>
-          </div>
 
           <div class="system-row">
-            <span>PC LINK</span>
-            <strong class="online">CONNECTED</strong>
+
+            <span>
+              MEMORY
+            </span>
+
+            <strong class="online">
+              ACTIVE
+            </strong>
+
+          </div>
+
+
+          <div class="system-row">
+
+            <span>
+              VOICE
+            </span>
+
+            <strong class="online">
+              READY
+            </strong>
+
+          </div>
+
+
+          <div class="system-row">
+
+            <span>
+              PC CONNECTION
+            </span>
+
+            <strong class="online">
+              CONNECTED
+            </strong>
+
           </div>
 
         </div>
 
 
-        <div class="system-card">
+        <!-- REACTOR -->
+
+        <div class="system-card bruce-core-card">
 
           <div class="card-title">
-            BRUCE
+            BRUCE CORE
           </div>
+
 
           <div class="reactor">
 
             <div class="reactor-ring ring-1"></div>
+
             <div class="reactor-ring ring-2"></div>
+
             <div class="reactor-ring ring-3"></div>
+
+            <div class="reactor-line line-x"></div>
+
+            <div class="reactor-line line-y"></div>
 
             <div class="reactor-core">
               B
@@ -105,20 +209,77 @@
 
           </div>
 
+
           <div class="reactor-status">
-            READY
+            SYSTEM READY
           </div>
+
+        </div>
+
+
+        <div class="quote">
+
+          <span>
+            //
+          </span>
+
+          "The night is most useful
+          when everyone else is asleep."
 
         </div>
 
       </aside>
 
 
+
       <!-- CHAT -->
 
       <section class="chat-container">
 
+
+        <div class="chat-header">
+
+          <div>
+
+            <span class="small-label">
+              PRIVATE CHANNEL
+            </span>
+
+            <h2>
+              COMMUNICATION
+            </h2>
+
+          </div>
+
+
+          <div class="chat-indicator">
+
+            <span></span>
+
+            LIVE
+
+          </div>
+
+        </div>
+
+
         <div id="chat" class="chat">
+
+
+          <div class="conversation-start">
+
+            <div class="conversation-line"></div>
+
+            <span>
+              SECURE CONNECTION ESTABLISHED
+            </span>
+
+            <small>
+              BRUCE IS AVAILABLE
+            </small>
+
+          </div>
+
 
           <div class="message bruce">
 
@@ -128,14 +289,21 @@
                 B
               </div>
 
-              <span>BRUCE</span>
+              <span>
+                BRUCE
+              </span>
 
-              <small>NOW</small>
+              <small>
+                NOW
+              </small>
 
             </div>
 
+
             <div class="message-content">
+
               Buenas. Soy Bruce. ¿En qué puedo ayudarte?
+
             </div>
 
           </div>
@@ -147,13 +315,18 @@
 
         <form id="inputArea" class="input-area">
 
+
           <button
             type="button"
             id="micButton"
             class="icon-button"
             title="Hablar con Bruce"
           >
-            <span class="mic-icon">●</span>
+
+            <span class="mic-icon">
+              ◉
+            </span>
+
           </button>
 
 
@@ -162,12 +335,14 @@
             <input
               id="messageInput"
               type="text"
-              placeholder="Escribe una orden para Bruce..."
+              placeholder="Habla con Bruce..."
               autocomplete="off"
+              spellcheck="false"
             >
 
+
             <div class="input-status">
-              BRUCE READY
+              ENCRYPTED
             </div>
 
           </div>
@@ -177,11 +352,20 @@
             type="submit"
             class="send-button"
           >
-            <span>ENVIAR</span>
-            <span class="send-arrow">➜</span>
+
+            <span>
+              ENVIAR
+            </span>
+
+            <span class="send-arrow">
+              →
+            </span>
+
           </button>
 
+
         </form>
+
 
       </section>
 
@@ -193,11 +377,11 @@
     <footer>
 
       <div>
-        BRUCE AI
+        WAYNE SYSTEMS
       </div>
 
-      <div>
-        SYSTEM SECURE
+      <div class="footer-center">
+        PRIVATE ACCESS
       </div>
 
       <div id="clock">
@@ -206,31 +390,46 @@
 
     </footer>
 
+
   </main>
 
+
+
+  <!-- RELOJ -->
 
   <script>
 
     function updateClock() {
 
-      const clock = document.getElementById("clock");
+      const clock =
+        document.getElementById("clock");
 
-      if (!clock) return;
+      if (!clock) {
+        return;
+      }
 
       const now = new Date();
 
       clock.textContent =
-        now.toLocaleTimeString("es-ES", {
-          hour12: false
-        });
+        now.toLocaleTimeString(
+          "es-ES",
+          {
+            hour12: false
+          }
+        );
 
     }
 
+
     updateClock();
 
-    setInterval(updateClock, 1000);
+    setInterval(
+      updateClock,
+      1000
+    );
 
   </script>
+
 
   <script src="script.js"></script>
 
