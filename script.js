@@ -1,7 +1,13 @@
-let sessionId = localStorage.getItem("bruce_session_id");
+let sessionId =
+    localStorage.getItem(
+        "bruce_session_id"
+    );
+
 
 if (!sessionId) {
-    sessionId = crypto.randomUUID();
+
+    sessionId =
+        crypto.randomUUID();
 
     localStorage.setItem(
         "bruce_session_id",
@@ -20,32 +26,43 @@ const WORKER_URL =
 const AGENT_URL =
     "http://127.0.0.1:8765/action";
 
+const SPEAK_URL =
+    "https://brucewayne.aleixruto.workers.dev/api/speak";
+
 
 // =====================================================
 // ELEMENTOS
 // =====================================================
 
 const chat =
-    document.getElementById("chat");
+    document.getElementById(
+        "chat"
+    );
 
 const inputArea =
-    document.getElementById("inputArea");
+    document.getElementById(
+        "inputArea"
+    );
 
 const input =
-    document.getElementById("messageInput");
-
-const micButton =
-    document.getElementById("micButton");
+    document.getElementById(
+        "messageInput"
+    );
 
 
 // =====================================================
 // MOSTRAR MENSAJE
 // =====================================================
 
-function addMessage(text, type) {
+function addMessage(
+    text,
+    type
+) {
 
     const message =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     message.className =
         "message " + type;
@@ -63,98 +80,105 @@ function addMessage(text, type) {
 
 
 // =====================================================
-// BRUCE HABLA
+// BRUCE HABLA CON ELEVENLABS
 // =====================================================
 
-function speak(text) {
+async function speak(
+    text
+) {
 
-    if (!("speechSynthesis" in window)) {
-        console.warn(
-            "Este navegador no soporta síntesis de voz."
-        );
+    if (!text) {
         return;
     }
 
-    speechSynthesis.cancel();
-
-    const utterance =
-        new SpeechSynthesisUtterance(text);
-
-    // Español
-    utterance.lang = "es-ES";
-
-    // Voz más lenta y grave
-    utterance.rate = 0.88;
-    utterance.pitch = 0.65;
-    utterance.volume = 1.0;
-
-    const voices =
-        speechSynthesis.getVoices();
-
-    // Intentar encontrar una voz masculina española
-    const preferredNames = [
-        "Microsoft Jorge",
-        "Microsoft Pablo",
-        "Microsoft Alvaro",
-        "Google español",
-        "Google español de España"
-    ];
-
-    let selectedVoice = null;
-
-    for (const name of preferredNames) {
-
-        selectedVoice =
-            voices.find(
-                voice =>
-                    voice.name
-                        .toLowerCase()
-                        .includes(
-                            name.toLowerCase()
-                        )
-            );
-
-        if (selectedVoice) {
-            break;
-        }
-    }
-
-    // Si no encontramos una concreta,
-    // buscar cualquier voz española
-    if (!selectedVoice) {
-
-        selectedVoice =
-            voices.find(
-                voice =>
-                    voice.lang &&
-                    voice.lang
-                        .toLowerCase()
-                        .startsWith("es")
-            );
-    }
-
-    if (selectedVoice) {
-
-        utterance.voice =
-            selectedVoice;
+    try {
 
         console.log(
-            "Voz de Bruce:",
-            selectedVoice.name
+            "Generando voz de Bruce..."
+        );
+
+
+        const response =
+            await fetch(
+                SPEAK_URL,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        text: text
+                    })
+                }
+            );
+
+
+        if (!response.ok) {
+
+            const errorText =
+                await response.text();
+
+            console.error(
+                "Error ElevenLabs:",
+                errorText
+            );
+
+            return;
+        }
+
+
+        const audioBlob =
+            await response.blob();
+
+
+        const audioUrl =
+            URL.createObjectURL(
+                audioBlob
+            );
+
+
+        const audio =
+            new Audio(
+                audioUrl
+            );
+
+
+        audio.volume =
+            1.0;
+
+
+        audio.onended =
+            function() {
+
+                URL.revokeObjectURL(
+                    audioUrl
+                );
+            };
+
+
+        await audio.play();
+
+
+    } catch (error) {
+
+        console.error(
+            "No se pudo reproducir la voz:",
+            error
         );
     }
-
-    speechSynthesis.speak(
-        utterance
-    );
 }
 
 
 // =====================================================
-// EJECUTAR UNA ACCIÓN
+// EJECUTAR ACCIÓN
 // =====================================================
 
-async function executeAction(action) {
+async function executeAction(
+    action
+) {
 
     if (!action) {
         return;
@@ -181,7 +205,8 @@ async function executeAction(action) {
                     },
 
                     body: JSON.stringify({
-                        action: action
+                        action:
+                            action
                     })
                 }
             );
@@ -192,7 +217,7 @@ async function executeAction(action) {
 
 
         console.log(
-            "Respuesta de Bruce Agent:",
+            "Bruce Agent:",
             data
         );
 
@@ -200,7 +225,7 @@ async function executeAction(action) {
         if (!data.success) {
 
             console.error(
-                "Bruce Agent rechazó la acción:",
+                "El agente rechazó:",
                 data.message
             );
         }
@@ -209,7 +234,7 @@ async function executeAction(action) {
     } catch (error) {
 
         console.error(
-            "Error conectando con Bruce Agent:",
+            "Error con Bruce Agent:",
             error
         );
     }
@@ -217,23 +242,18 @@ async function executeAction(action) {
 
 
 // =====================================================
-// EJECUTAR TODAS LAS ACCIONES
+// EJECUTAR VARIAS ACCIONES
 // =====================================================
 
-async function executeActions(data) {
+async function executeActions(
+    data
+) {
 
-    // Sistema nuevo
     if (
         Array.isArray(
             data.actions
         )
     ) {
-
-        console.log(
-            "Acciones recibidas:",
-            data.actions
-        );
-
 
         for (
             const action
@@ -245,12 +265,10 @@ async function executeActions(data) {
             );
         }
 
-
         return;
     }
 
 
-    // Compatibilidad con el sistema antiguo
     if (data.action) {
 
         await executeAction(
@@ -264,13 +282,10 @@ async function executeActions(data) {
 // ENVIAR MENSAJE
 // =====================================================
 
-async function sendMessage(text = null) {
+async function sendMessage() {
 
-    if (text === null) {
-
-        text =
-            input.value.trim();
-    }
+    const text =
+        input.value.trim();
 
 
     if (!text) {
@@ -288,12 +303,6 @@ async function sendMessage(text = null) {
 
 
     try {
-
-        console.log(
-            "Enviando a Bruce:",
-            text
-        );
-
 
         const response =
             await fetch(
@@ -313,6 +322,7 @@ async function sendMessage(text = null) {
 
                         sessionId:
                             sessionId
+
                     })
                 }
             );
@@ -323,7 +333,7 @@ async function sendMessage(text = null) {
 
 
         console.log(
-            "Respuesta completa de Bruce:",
+            "Bruce respondió:",
             responseText
         );
 
@@ -338,10 +348,10 @@ async function sendMessage(text = null) {
                     responseText
                 );
 
-        } catch (error) {
+        } catch {
 
             addMessage(
-                "Bruce ha devuelto una respuesta inesperada: " +
+                "Respuesta inesperada: " +
                 responseText,
                 "bruce"
             );
@@ -349,10 +359,6 @@ async function sendMessage(text = null) {
             return;
         }
 
-
-        // =================================================
-        // ERROR
-        // =================================================
 
         if (data.error) {
 
@@ -366,34 +372,24 @@ async function sendMessage(text = null) {
         }
 
 
-        // =================================================
-        // RESPUESTA
-        // =================================================
-
-        const bruceResponse =
+        const reply =
             data.response ||
             "He recibido tu mensaje.";
 
 
         addMessage(
-            bruceResponse,
+            reply,
             "bruce"
         );
 
 
-        // =================================================
-        // HACER QUE BRUCE HABLE
-        // =================================================
-
-        speak(
-            bruceResponse
+        // Bruce habla
+        await speak(
+            reply
         );
 
 
-        // =================================================
-        // EJECUTAR ACCIONES
-        // =================================================
-
+        // Ejecutar acciones
         await executeActions(
             data
         );
@@ -402,7 +398,6 @@ async function sendMessage(text = null) {
     } catch (error) {
 
         console.error(
-            "Error general:",
             error
         );
 
@@ -491,159 +486,6 @@ async function loadHistory() {
 
 
 // =====================================================
-// RECONOCIMIENTO DE VOZ
-// =====================================================
-
-const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
-
-
-let recognition = null;
-
-
-if (SpeechRecognition) {
-
-    recognition =
-        new SpeechRecognition();
-
-
-    recognition.lang =
-        "es-ES";
-
-
-    recognition.interimResults =
-        false;
-
-
-    recognition.continuous =
-        false;
-
-
-    recognition.maxAlternatives =
-        1;
-
-
-    recognition.onstart =
-        function() {
-
-            console.log(
-                "Bruce está escuchando..."
-            );
-
-
-            if (micButton) {
-
-                micButton.textContent =
-                    "🔴";
-
-                micButton.title =
-                    "Bruce está escuchando...";
-            }
-        };
-
-
-    recognition.onresult =
-        function(event) {
-
-            const transcript =
-                event
-                    .results[0][0]
-                    .transcript
-                    .trim();
-
-
-            console.log(
-                "Has dicho:",
-                transcript
-            );
-
-
-            input.value =
-                transcript;
-
-
-            sendMessage(
-                transcript
-            );
-        };
-
-
-    recognition.onerror =
-        function(event) {
-
-            console.error(
-                "Error de reconocimiento:",
-                event.error
-            );
-
-
-            if (micButton) {
-
-                micButton.textContent =
-                    "🎙️";
-
-                micButton.title =
-                    "Hablar con Bruce";
-            }
-        };
-
-
-    recognition.onend =
-        function() {
-
-            if (micButton) {
-
-                micButton.textContent =
-                    "🎙️";
-
-                micButton.title =
-                    "Hablar con Bruce";
-            }
-        };
-
-
-    if (micButton) {
-
-        micButton.addEventListener(
-            "click",
-            function() {
-
-                try {
-
-                    recognition.start();
-
-                } catch (error) {
-
-                    console.error(
-                        "No se pudo iniciar el micrófono:",
-                        error
-                    );
-                }
-            }
-        );
-    }
-
-
-} else {
-
-    console.warn(
-        "SpeechRecognition no está disponible."
-    );
-
-
-    if (micButton) {
-
-        micButton.disabled =
-            true;
-
-        micButton.title =
-            "Tu navegador no soporta reconocimiento de voz";
-    }
-}
-
-
-// =====================================================
 // FORMULARIO
 // =====================================================
 
@@ -659,28 +501,7 @@ inputArea.addEventListener(
 
 
 // =====================================================
-// VOCES
-// =====================================================
-
-if (
-    "speechSynthesis" in window
-) {
-
-    speechSynthesis.onvoiceschanged =
-        function() {
-
-            console.log(
-                "Voces disponibles:",
-                speechSynthesis
-                    .getVoices()
-                    .length
-            );
-        };
-}
-
-
-// =====================================================
-// HISTORIAL
+// INICIO
 // =====================================================
 
 loadHistory();
