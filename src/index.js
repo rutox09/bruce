@@ -5,7 +5,7 @@ try {
 const body = await request.json();
 const userMessage = body.message;
 
-```
+
     if (!userMessage) {
       return new Response(
         JSON.stringify({
@@ -67,7 +67,7 @@ const userMessage = body.message;
 }
 
 return env.ASSETS.fetch(request);
-```
+
 
 }
 };
