@@ -121,28 +121,26 @@ if (request.method === "POST" && url.pathname === "/api/chat") {
 
 console.log("RESPUESTA COMPLETA DE LA IA:", JSON.stringify(result));
 
-    let answer = "";
+   let answer = "";
 
-    if (typeof result === "string") {
-      answer = result;
-    } else if (result && result.response) {
-      answer = result.response;
-    } else if (result && result.output_text) {
-      answer = result.output_text;
-    } else if (result && result.choices && result.choices[0]) {
-      const choice = result.choices[0];
+if (
+  result &&
+  result.choices &&
+  result.choices.length > 0 &&
+  result.choices[0].message &&
+  result.choices[0].message.content
+) {
+  answer = result.choices[0].message.content;
+}
 
-      if (choice.message && choice.message.content) {
-        answer = choice.message.content;
-      } else if (choice.text) {
-        answer = choice.text;
-      }
-    }
+if (!answer) {
+  console.error(
+    "Bruce no pudo extraer el texto de la IA:",
+    JSON.stringify(result)
+  );
 
-    if (!answer) {
-      answer = "No he podido obtener una respuesta de la IA.";
-    }
-
+  answer = "He tenido un problema procesando la respuesta. Inténtalo de nuevo.";
+}
     await env.DB
       .prepare(
         "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
