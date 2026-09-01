@@ -1,1165 +1,749 @@
-export default {
-  async fetch(request, env) {
+const MODEL = "@cf/openai/gpt-oss-20b";
 
-    const url = new URL(request.url);
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
 
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      ...CORS_HEADERS,
+      "Content-Type": "application/json; charset=UTF-8",
+    },
+  });
+}
 
-    // =====================================================
-    // HISTORIAL
-    // =====================================================
+function textResponse(text, status = 200) {
+  return new Response(text, {
+    status,
+    headers: {
+      ...CORS_HEADERS,
+      "Content-Type": "text/plain; charset=UTF-8",
+    },
+  });
+}
 
-    if (
-      request.method === "GET" &&
-      url.pathname === "/api/history"
-    ) {
+async function readJson(request) {
+  try {
+    return await request.json();
+  } catch {
+    return {};
+  }
+}
 
-      try {
+function normalizeText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
 
-        const sessionId =
-          url.searchParams.get("sessionId");
+function includesAny(text, values) {
+  return values.some((value) => text.includes(value));
+}
 
-        if (!sessionId) {
+/* =========================================================
+   MEMORIA D1
+========================================================= */
 
-          return new Response(
-            JSON.stringify({
-              error: "Falta el sessionId"
-            }),
-            {
-              status: 400,
-              headers: {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
-              }
-            }
-          );
-        }
+async function saveMessage(env, sessionId, role, content) {
+  if (!env.DB || !sessionId || !content) return;
 
+  try {
+    await env.DB
+      .prepare(
+        "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
+      )
+      .bind(sessionId, role, content)
+      .run();
+  } catch (error) {
+    console.error("Error guardando mensaje:", error);
+  }
+}
 
-        const result =
-          await env.DB
-            .prepare(
-              "SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC LIMIT 100"
-            )
-            .bind(sessionId)
-            .all();
+async function getHistory(env, sessionId) {
+  if (!env.DB || !sessionId) return [];
 
+  try {
+    const result = await env.DB
+      .prepare(
+        "SELECT role, content FROM messages WHERE session_id = ? ORDER BY rowid ASC LIMIT 50"
+      )
+      .bind(sessionId)
+      .all();
 
-        return new Response(
-          JSON.stringify({
-            messages: result.results
-          }),
-          {
-            status: 200,
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*"
-            }
-          }
-        );
+    return result.results || [];
+  } catch (error) {
+    console.error("Error leyendo memoria:", error);
+    return [];
+  }
+}
 
+/* =========================================================
+   ACCIONES
+========================================================= */
 
-      } catch (error) {
+const websites = {
+  youtube: {
+    name: "YouTube",
+    url: "https://www.youtube.com",
+  },
+  twitch: {
+    name: "Twitch",
+    url: "https://www.twitch.tv",
+  },
+  spotify: {
+    name: "Spotify",
+    url: "https://open.spotify.com",
+  },
+  discord: {
+    name: "Discord",
+    url: "https://discord.com/app",
+  },
+  tiktok: {
+    name: "TikTok",
+    url: "https://www.tiktok.com",
+  },
+  google: {
+    name: "Google",
+    url: "https://www.google.com",
+  },
+  netflix: {
+    name: "Netflix",
+    url: "https://www.netflix.com",
+  },
+};
 
-        return new Response(
-          JSON.stringify({
-            error:
-              "No se pudo cargar la memoria",
-            details:
-              String(error)
-          }),
-          {
-            status: 500,
-            headers: {
-              "Content-Type":
-                "application/json",
-              "Access-Control-Allow-Origin":
-                "*"
-            }
-          }
-        );
-      }
+const apps = {
+  chrome: {
+    name: "Chrome",
+  },
+  edge: {
+    name: "Edge",
+  },
+  steam: {
+    name: "Steam",
+  },
+  epic: {
+    name: "Epic Games",
+  },
+  notepad: {
+    name: "Bloc de notas",
+  },
+  calculator: {
+    name: "Calculadora",
+  },
+};
+
+const games = {
+  rocket_league: {
+    name: "Rocket League",
+  },
+};
+
+function detectWebsite(text) {
+  if (includesAny(text, ["youtube", "you tube"])) return "youtube";
+  if (text.includes("twitch")) return "twitch";
+  if (text.includes("spotify")) return "spotify";
+  if (text.includes("discord")) return "discord";
+  if (text.includes("tiktok")) return "tiktok";
+  if (text.includes("netflix")) return "netflix";
+  if (text.includes("google")) return "google";
+
+  return null;
+}
+
+function detectApp(text) {
+  if (text.includes("chrome")) return "chrome";
+  if (text.includes("edge")) return "edge";
+  if (text.includes("steam")) return "steam";
+  if (text.includes("epic")) return "epic";
+  if (
+    text.includes("bloc de notas") ||
+    text.includes("bloc notas") ||
+    text.includes("notepad")
+  ) {
+    return "notepad";
+  }
+
+  if (
+    text.includes("calculadora") ||
+    text.includes("calculator")
+  ) {
+    return "calculator";
+  }
+
+  return null;
+}
+
+function detectGame(text) {
+  if (
+    text.includes("rocket league") ||
+    text.includes("rocketleague")
+  ) {
+    return "rocket_league";
+  }
+
+  return null;
+}
+
+function wantsOpen(text) {
+  return includesAny(text, [
+    "abre",
+    "abrir",
+    "abrime",
+    "abrirme",
+    "pon",
+    "poner",
+    "ponme",
+    "inicia",
+    "iniciar",
+    "ejecuta",
+    "ejecutar",
+    "juega",
+    "jugar",
+    "lanza",
+    "lanzar",
+    "abre me",
+  ]);
+}
+
+function wantsClose(text) {
+  return includesAny(text, [
+    "cierra",
+    "cerrar",
+    "cerrame",
+    "cerrarme",
+    "deten",
+    "detener",
+    "quita",
+    "quitar",
+  ]);
+}
+
+function detectMultipleActions(text) {
+  const actions = [];
+
+  const isOpen = wantsOpen(text);
+  const isClose = wantsClose(text);
+
+  /* SISTEMA: no confundir estas órdenes con cerrar aplicaciones */
+
+  const shutdownPC =
+    includesAny(text, [
+      "apaga el ordenador",
+      "apaga mi ordenador",
+      "apaga el pc",
+      "apaga mi pc",
+      "apagar el ordenador",
+      "apagar el pc",
+      "apaga windows",
+    ]);
+
+  const cancelShutdown =
+    includesAny(text, [
+      "cancela el apagado",
+      "cancelar el apagado",
+      "cancela apagado",
+      "cancelar apagado",
+    ]);
+
+  const stopBruce =
+    includesAny(text, [
+      "apaga bruce",
+      "apagar bruce",
+      "cierra bruce",
+      "cerrar bruce",
+      "duerme bruce",
+      "dormir bruce",
+    ]);
+
+  const wakeBruce =
+    includesAny(text, [
+      "enciende bruce",
+      "encender bruce",
+      "activa bruce",
+      "activar bruce",
+      "despierta bruce",
+      "despertar bruce",
+    ]);
+
+  if (shutdownPC) {
+    actions.push({
+      type: "shutdown_pc",
+    });
+
+    return actions;
+  }
+
+  if (cancelShutdown) {
+    actions.push({
+      type: "cancel_shutdown",
+    });
+
+    return actions;
+  }
+
+  if (stopBruce) {
+    actions.push({
+      type: "stop_agent",
+    });
+
+    return actions;
+  }
+
+  if (wakeBruce) {
+    actions.push({
+      type: "wake_agent",
+    });
+
+    return actions;
+  }
+
+  /* =========================================================
+     ABRIR
+  ========================================================= */
+
+  if (isOpen) {
+    if (text.includes("rocket league") || text.includes("rocketleague")) {
+      actions.push({
+        type: "game",
+        target: "rocket_league",
+      });
     }
 
-
-    // =====================================================
-    // VOZ DE BRUCE - ELEVENLABS
-    // =====================================================
-
-    if (
-      request.method === "POST" &&
-      url.pathname === "/api/speak"
-    ) {
-
-      try {
-
-        const body =
-          await request.json();
-
-
-        const text =
-          String(
-            body.text || ""
-          ).trim();
-
-
-        if (!text) {
-
-          return new Response(
-            JSON.stringify({
-              error:
-                "Falta el texto"
-            }),
-            {
-              status: 400,
-              headers: {
-                "Content-Type":
-                  "application/json"
-              }
-            }
-          );
-        }
-
-
-        if (!env.ELEVENLABS_API_KEY) {
-
-          return new Response(
-            JSON.stringify({
-              error:
-                "Falta ELEVENLABS_API_KEY"
-            }),
-            {
-              status: 500,
-              headers: {
-                "Content-Type":
-                  "application/json"
-              }
-            }
-          );
-        }
-
-
-        if (!env.ELEVENLABS_VOICE_ID) {
-
-          return new Response(
-            JSON.stringify({
-              error:
-                "Falta ELEVENLABS_VOICE_ID"
-            }),
-            {
-              status: 500,
-              headers: {
-                "Content-Type":
-                  "application/json"
-              }
-            }
-          );
-        }
-
-
-        const elevenResponse =
-          await fetch(
-            `https://api.elevenlabs.io/v1/text-to-speech/${env.ELEVENLABS_VOICE_ID}?output_format=mp3_44100_128`,
-            {
-              method: "POST",
-
-              headers: {
-                "xi-api-key":
-                  env.ELEVENLABS_API_KEY,
-
-                "Content-Type":
-                  "application/json"
-              },
-
-              body: JSON.stringify({
-
-                text:
-
-                  text,
-
-                model_id:
-                  "eleven_multilingual_v2",
-
-                voice_settings: {
-
-                  stability:
-                    0.45,
-
-                  similarity_boost:
-                    0.85,
-
-                  style:
-                    0.35,
-
-                  use_speaker_boost:
-                    true
-                }
-              })
-            }
-          );
-
-
-        if (!elevenResponse.ok) {
-
-          const errorText =
-            await elevenResponse.text();
-
-
-          console.error(
-            "ElevenLabs error:",
-            elevenResponse.status,
-            errorText
-          );
-
-
-          return new Response(
-            JSON.stringify({
-
-              error:
-                "ElevenLabs devolvió un error",
-
-              status:
-                elevenResponse.status,
-
-              details:
-                errorText
-
-            }),
-            {
-              status: 502,
-
-              headers: {
-                "Content-Type":
-                  "application/json"
-              }
-            }
-          );
-        }
-
-
-        const audio =
-          await elevenResponse.arrayBuffer();
-
-
-        return new Response(
-          audio,
-          {
-            status: 200,
-
-            headers: {
-
-              "Content-Type":
-                "audio/mpeg",
-
-              "Cache-Control":
-                "no-store",
-
-              "Access-Control-Allow-Origin":
-                "*"
-            }
-          }
-        );
-
-
-      } catch (error) {
-
-        console.error(
-          "ERROR ELEVENLABS:",
-          error
-        );
-
-
-        return new Response(
-          JSON.stringify({
-
-            error:
-              "No se pudo generar la voz",
-
-            details:
-              String(error)
-
-          }),
-          {
-            status: 500,
-
-            headers: {
-              "Content-Type":
-                "application/json"
-            }
-          }
-        );
-      }
-    }
-
-
-    // =====================================================
-    // CHAT
-    // =====================================================
-
-    if (
-      request.method === "POST" &&
-      url.pathname === "/api/chat"
-    ) {
-
-      try {
-
-        const body =
-          await request.json();
-
-
-        const userMessage =
-          String(
-            body.message || ""
-          ).trim();
-
-
-        const sessionId =
-          body.sessionId;
-
-
-        if (
-          !userMessage ||
-          !sessionId
-        ) {
-
-          return new Response(
-            JSON.stringify({
-
-              error:
-                "Falta el mensaje o la sesión"
-
-            }),
-            {
-              status: 400,
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-
-                "Access-Control-Allow-Origin":
-                  "*"
-              }
-            }
-          );
-        }
-
-
-        // =================================================
-        // MEMORIA
-        // =================================================
-
-        const previous =
-          await env.DB
-            .prepare(
-              "SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC LIMIT 30"
-            )
-            .bind(
-              sessionId
-            )
-            .all();
-
-
-        const messages = [
-
-          {
-            role:
-              "system",
-
-            content: `
-Eres Bruce, un asistente personal inteligente.
-
-Responde siempre en español.
-
-Tu personalidad es elegante, inteligente, tranquila, directa y práctica.
-
-Puedes conversar normalmente.
-
-También puedes controlar el ordenador.
-
-Funciones disponibles:
-
-PÁGINAS WEB:
-- YouTube
-- Twitch
-- Spotify
-- Discord
-- TikTok
-- Google
-- Netflix
-
-APLICACIONES:
-- Chrome
-- Edge
-- Steam
-- Epic Games
-- Bloc de notas
-- Calculadora
-
-JUEGOS:
-- Rocket League
-
-ACCIONES DEL SISTEMA:
-- apagar ordenador
-- cancelar apagado
-- dormir Bruce
-- despertar Bruce
-
-La aplicación puede interpretar directamente las órdenes sencillas de control del ordenador.
-`
-          }
-
-        ];
-
-
-        for (
-          const msg
-          of previous.results
-        ) {
-
-          messages.push({
-
-            role:
-              msg.role,
-
-            content:
-              msg.content
-          });
-        }
-
-
-        messages.push({
-
-          role:
-            "user",
-
-          content:
-            userMessage
+    for (const key of Object.keys(websites)) {
+      const name = normalizeText(websites[key].name);
+
+      if (
+        text.includes(key.replace("_", " ")) ||
+        text.includes(name)
+      ) {
+        actions.push({
+          type: "website",
+          target: key,
         });
-
-
-        // =================================================
-        // GUARDAR MENSAJE DEL USUARIO
-        // =================================================
-
-        await env.DB
-          .prepare(
-            "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
-          )
-          .bind(
-            sessionId,
-            "user",
-            userMessage
-          )
-          .run();
-
-
-        // =================================================
-        // NORMALIZAR TEXTO
-        // =================================================
-
-        const text =
-          userMessage
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(
-              /[\u0300-\u036f]/g,
-              ""
-            );
-
-
-        // =================================================
-        // CONFIGURACIÓN
-        // =================================================
-
-        const websites = {
-
-          youtube: [
-            "youtube",
-            "you tube"
-          ],
-
-          twitch: [
-            "twitch",
-            "twich"
-          ],
-
-          spotify: [
-            "spotify"
-          ],
-
-          discord: [
-            "discord"
-          ],
-
-          tiktok: [
-            "tiktok",
-            "tik tok"
-          ],
-
-          google: [
-            "google"
-          ],
-
-          netflix: [
-            "netflix"
-          ]
-        };
-
-
-        const apps = {
-
-          chrome: [
-            "chrome",
-            "google chrome"
-          ],
-
-          edge: [
-            "edge",
-            "microsoft edge"
-          ],
-
-          steam: [
-            "steam"
-          ],
-
-          epic: [
-            "epic",
-            "epic games"
-          ],
-
-          notepad: [
-            "bloc de notas",
-            "notepad"
-          ],
-
-          calculator: [
-            "calculadora",
-            "calculator"
-          ]
-        };
-
-
-        const games = {
-
-          rocket_league: [
-            "rocket league",
-            "rocket"
-          ]
-        };
-
-
-        const actions = [];
-
-
-        let reply = "";
-
-
-        // =================================================
-        // INTENCIONES
-        // =================================================
-
-        const wantsClose =
-          /\b(
-            cierra|
-            cerrar|
-            cerrame|
-            cierra la|
-            cierra el|
-            cerrar la|
-            cerrar el|
-            apaga|
-            apagar|
-            detén|
-            deten|
-            detener|
-            duerme|
-            dormir
-          )\b/x.test(text);
-
-
-        const wantsOpen =
-          /\b(
-            abre|
-            abrir|
-            abrime|
-            abrirme|
-            pon|
-            poner|
-            ponme|
-            inicia|
-            iniciar|
-            ejecuta|
-            ejecutar|
-            juega|
-            jugar
-          )\b/x.test(text);
-
-
-        // =================================================
-        // APAGAR PC
-        // =================================================
-
-        if (
-          text.includes(
-            "apaga el ordenador"
-          ) ||
-          text.includes(
-            "apaga el pc"
-          ) ||
-          text.includes(
-            "apagar el ordenador"
-          ) ||
-          text.includes(
-            "apagar el pc"
-          )
-        ) {
-
-          actions.push({
-
-            type:
-              "shutdown_pc"
-          });
-
-
-          reply =
-            "Apagando el ordenador en 30 segundos.";
-        }
-
-
-        // =================================================
-        // CANCELAR APAGADO
-        // =================================================
-
-        else if (
-          text.includes(
-            "cancela el apagado"
-          ) ||
-          text.includes(
-            "cancelar el apagado"
-          ) ||
-          text.includes(
-            "cancela el apagado del ordenador"
-          )
-        ) {
-
-          actions.push({
-
-            type:
-              "cancel_shutdown"
-          });
-
-
-          reply =
-            "He cancelado el apagado.";
-        }
-
-
-        // =================================================
-        // DORMIR BRUCE
-        // =================================================
-
-        else if (
-          text === "duerme bruce" ||
-          text === "dormir bruce" ||
-          text === "duerme" ||
-          text.includes("pon a bruce a dormir") ||
-          text.includes("pon bruce a dormir") ||
-          text.includes("apaga bruce")
-        ) {
-
-          actions.push({
-
-            type:
-              "stop_agent"
-          });
-
-
-          reply =
-            "Entrando en modo reposo.";
-        }
-
-
-        // =================================================
-        // DESPERTAR BRUCE
-        // =================================================
-
-        else if (
-          text === "despierta bruce" ||
-          text === "despertar bruce" ||
-          text === "enciende bruce" ||
-          text === "encender bruce" ||
-          text === "despierta"
-        ) {
-
-          actions.push({
-
-            type:
-              "wake_agent"
-          });
-
-
-          reply =
-            "Bruce está activo de nuevo.";
-        }
-
-
-        // =================================================
-        // CERRAR PÁGINAS
-        // =================================================
-
-        else if (wantsClose) {
-
-          for (
-            const [id, aliases]
-            of Object.entries(
-              websites
-            )
-          ) {
-
-            if (
-              aliases.some(
-                alias =>
-                  text.includes(alias)
-              )
-            ) {
-
-              actions.push({
-
-                type:
-                  "close_website",
-
-                target:
-                  id
-              });
-            }
-          }
-
-
-          // =================================================
-          // CERRAR APPS
-          // =================================================
-
-          for (
-            const [id, aliases]
-            of Object.entries(
-              apps
-            )
-          ) {
-
-            if (
-              aliases.some(
-                alias =>
-                  text.includes(alias)
-              )
-            ) {
-
-              actions.push({
-
-                type:
-                  "close",
-
-                target:
-                  id
-              });
-            }
-          }
-
-
-          // =================================================
-          // CERRAR JUEGOS
-          // =================================================
-
-          for (
-            const [id, aliases]
-            of Object.entries(
-              games
-            )
-          ) {
-
-            if (
-              aliases.some(
-                alias =>
-                  text.includes(alias)
-              )
-            ) {
-
-              actions.push({
-
-                type:
-                  "close",
-
-                target:
-                  id
-              });
-            }
-          }
-
-
-          if (
-            actions.length > 0
-          ) {
-
-            const names =
-              actions
-                .map(
-                  action =>
-                    action.target
-                )
-                .filter(Boolean);
-
-
-            if (
-              names.length === 1
-            ) {
-
-              reply =
-                `Cerrando ${names[0]}.`;
-
-            } else {
-
-              reply =
-                `Cerrando ${names.join(", ")}.`;
-            }
-          }
-        }
-
-
-        // =================================================
-        // ABRIR
-        // =================================================
-
-        if (
-          wantsOpen &&
-          !text.includes(
-            "apaga"
-          )
-        ) {
-
-          // -------------------------------------------------
-          // PÁGINAS
-          // -------------------------------------------------
-
-          for (
-            const [id, aliases]
-            of Object.entries(
-              websites
-            )
-          ) {
-
-            if (
-              aliases.some(
-                alias =>
-                  text.includes(alias)
-              )
-            ) {
-
-              const exists =
-                actions.some(
-                  action =>
-                    action.target === id
-                );
-
-
-              if (!exists) {
-
-                actions.push({
-
-                  type:
-                    "website",
-
-                  target:
-                    id
-                });
-              }
-            }
-          }
-
-
-          // -------------------------------------------------
-          // APPS
-          // -------------------------------------------------
-
-          for (
-            const [id, aliases]
-            of Object.entries(
-              apps
-            )
-          ) {
-
-            if (
-              aliases.some(
-                alias =>
-                  text.includes(alias)
-              )
-            ) {
-
-              const exists =
-                actions.some(
-                  action =>
-                    action.target === id
-                );
-
-
-              if (!exists) {
-
-                actions.push({
-
-                  type:
-                    "app",
-
-                  target:
-                    id
-                });
-              }
-            }
-          }
-
-
-          // -------------------------------------------------
-          // JUEGOS
-          // -------------------------------------------------
-
-          for (
-            const [id, aliases]
-            of Object.entries(
-              games
-            )
-          ) {
-
-            if (
-              aliases.some(
-                alias =>
-                  text.includes(alias)
-              )
-            ) {
-
-              const exists =
-                actions.some(
-                  action =>
-                    action.target === id
-                );
-
-
-              if (!exists) {
-
-                actions.push({
-
-                  type:
-                    "game",
-
-                  target:
-                    id
-                });
-              }
-            }
-          }
-
-
-          if (
-            actions.length > 0 &&
-            !reply
-          ) {
-
-            const names =
-              actions.map(
-                action =>
-                  action.target
-              );
-
-
-            reply =
-              `Abriendo ${names.join(", ")}.`;
-          }
-        }
-
-
-        // =================================================
-        // SI HAY ACCIONES
-        // =================================================
-
-        if (
-          actions.length > 0
-        ) {
-
-          if (!reply) {
-
-            reply =
-              "Ejecutando la orden.";
-          }
-
-
-          await env.DB
-            .prepare(
-              "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
-            )
-            .bind(
-              sessionId,
-              "assistant",
-              reply
-            )
-            .run();
-
-
-          return new Response(
-            JSON.stringify({
-
-              response:
-                reply,
-
-              actions:
-                actions
-
-            }),
-            {
-              status: 200,
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-
-                "Access-Control-Allow-Origin":
-                  "*"
-              }
-            }
-          );
-        }
-
-
-        // =================================================
-        // IA PARA CONVERSACIÓN NORMAL
-        // =================================================
-
-        const result =
-          await env.AI.run(
-            "@cf/openai/gpt-oss-20b",
-            {
-
-              messages:
-                messages,
-
-              max_tokens:
-                1024
-            }
-          );
-
-
-        let answer =
-          "";
-
-
-        if (
-          result &&
-          result.choices &&
-          result.choices.length > 0 &&
-          result.choices[0].message
-        ) {
-
-          answer =
-            result
-              .choices[0]
-              .message
-              .content || "";
-        }
-
-
-        if (!answer) {
-
-          answer =
-            "He tenido un problema procesando la respuesta.";
-        }
-
-
-        await env.DB
-          .prepare(
-            "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
-          )
-          .bind(
-            sessionId,
-            "assistant",
-            answer
-          )
-          .run();
-
-
-        return new Response(
-          JSON.stringify({
-
-            response:
-              answer,
-
-            actions:
-              []
-
-          }),
-          {
-            status: 200,
-
-            headers: {
-              "Content-Type":
-                "application/json",
-
-              "Access-Control-Allow-Origin":
-                "*"
-            }
-          }
-        );
-
-
-      } catch (error) {
-
-        console.error(
-          "ERROR BRUCE:",
-          error
-        );
-
-
-        return new Response(
-          JSON.stringify({
-
-            error:
-              "Error en Bruce",
-
-            details:
-              String(error)
-
-          }),
-          {
-            status: 500,
-
-            headers: {
-              "Content-Type":
-                "application/json",
-
-              "Access-Control-Allow-Origin":
-                "*"
-            }
-          }
-        );
       }
     }
 
+    for (const key of Object.keys(apps)) {
+      const name = normalizeText(apps[key].name);
 
-    // =====================================================
-    // ASSETS
-    // =====================================================
+      if (
+        text.includes(key.replace("_", " ")) ||
+        text.includes(name)
+      ) {
+        actions.push({
+          type: "app",
+          target: key,
+        });
+      }
+    }
+  }
 
-    if (env.ASSETS) {
+  /* =========================================================
+     CERRAR
+  ========================================================= */
 
-      return env.ASSETS.fetch(
-        request
-      );
+  if (isClose) {
+    if (
+      text.includes("rocket league") ||
+      text.includes("rocketleague")
+    ) {
+      actions.push({
+        type: "close",
+        target: "rocket_league",
+      });
     }
 
+    for (const key of Object.keys(websites)) {
+      const name = normalizeText(websites[key].name);
 
-    return new Response(
-      "Bruce está funcionando.",
-      {
-        status: 200,
-
-        headers: {
-          "Content-Type":
-            "text/plain"
-        }
+      if (
+        text.includes(key.replace("_", " ")) ||
+        text.includes(name)
+      ) {
+        actions.push({
+          type: "close_website",
+          target: key,
+        });
       }
+    }
+
+    for (const key of Object.keys(apps)) {
+      const name = normalizeText(apps[key].name);
+
+      if (
+        text.includes(key.replace("_", " ")) ||
+        text.includes(name)
+      ) {
+        actions.push({
+          type: "close",
+          target: key,
+        });
+      }
+    }
+  }
+
+  /* Quitar duplicados */
+
+  const unique = [];
+  const seen = new Set();
+
+  for (const action of actions) {
+    const id = `${action.type}:${action.target || ""}`;
+
+    if (!seen.has(id)) {
+      seen.add(id);
+      unique.push(action);
+    }
+  }
+
+  return unique;
+}
+
+/* =========================================================
+   RESPUESTA DE BRUCE
+========================================================= */
+
+async function generateAIResponse(env, messages) {
+  if (!env.AI) {
+    throw new Error("No existe el binding env.AI");
+  }
+
+  const result = await env.AI.run(MODEL, {
+    messages,
+    max_tokens: 1024,
+  });
+
+  let content = null;
+
+  if (result && result.choices && result.choices[0]) {
+    const choice = result.choices[0];
+
+    if (choice.message && choice.message.content) {
+      content = choice.message.content;
+    } else if (choice.text) {
+      content = choice.text;
+    }
+  }
+
+  if (!content) {
+    content = "No he podido generar una respuesta.";
+  }
+
+  return String(content);
+}
+
+/* =========================================================
+   ELEVENLABS
+========================================================= */
+
+async function generateVoice(env, text) {
+  if (!env.ELEVENLABS_API_KEY) {
+    throw new Error("Falta ELEVENLABS_API_KEY");
+  }
+
+  if (!env.ELEVENLABS_VOICE_ID) {
+    throw new Error("Falta ELEVENLABS_VOICE_ID");
+  }
+
+  const voiceId = env.ELEVENLABS_VOICE_ID;
+
+  const url =
+    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "xi-api-key": env.ELEVENLABS_API_KEY,
+      "Content-Type": "application/json",
+      Accept: "audio/mpeg",
+    },
+    body: JSON.stringify({
+      text,
+      model_id: "eleven_multilingual_v2",
+      output_format: "mp3_44100_128",
+      voice_settings: {
+        stability: 0.45,
+        similarity_boost: 0.85,
+        style: 0.35,
+        use_speaker_boost: true,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `ElevenLabs ${response.status}: ${errorText}`
     );
   }
+
+  return response;
+}
+
+/* =========================================================
+   WORKER
+========================================================= */
+
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+    const method = request.method;
+
+    /* CORS */
+
+    if (method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: CORS_HEADERS,
+      });
+    }
+
+    /* =====================================================
+       HISTORIAL
+    ===================================================== */
+
+    if (method === "GET" && pathname === "/api/history") {
+      const sessionId =
+        url.searchParams.get("sessionId") || "default";
+
+      const history = await getHistory(env, sessionId);
+
+      return json({
+        history,
+      });
+    }
+
+    /* =====================================================
+       VOZ
+    ===================================================== */
+
+    if (method === "POST" && pathname === "/api/speak") {
+      try {
+        const body = await readJson(request);
+
+        const text = String(body.text || "").trim();
+
+        if (!text) {
+          return json(
+            {
+              error: "No hay texto para reproducir.",
+            },
+            400
+          );
+        }
+
+        const audioResponse = await generateVoice(env, text);
+
+        return new Response(audioResponse.body, {
+          status: 200,
+          headers: {
+            ...CORS_HEADERS,
+            "Content-Type": "audio/mpeg",
+            "Cache-Control": "no-store",
+          },
+        });
+      } catch (error) {
+        console.error("Error /api/speak:", error);
+
+        return json(
+          {
+            error: error.message || "Error generando voz.",
+          },
+          500
+        );
+      }
+    }
+
+    /* =====================================================
+       CHAT
+    ===================================================== */
+
+    if (method === "POST" && pathname === "/api/chat") {
+      try {
+        const body = await readJson(request);
+
+        const userMessage = String(
+          body.message || ""
+        ).trim();
+
+        const sessionId = String(
+          body.sessionId || "default"
+        );
+
+        if (!userMessage) {
+          return json(
+            {
+              error: "Mensaje vacío.",
+            },
+            400
+          );
+        }
+
+        const cleanText = normalizeText(userMessage);
+
+        /* =================================================
+           DETECCIÓN DIRECTA DE ACCIONES
+           ================================================= */
+
+        const actions = detectMultipleActions(cleanText);
+
+        /* =================================================
+           RESPUESTA PARA ACCIONES
+           ================================================= */
+
+        if (actions.length > 0) {
+          let responseText = "Hecho.";
+
+          if (
+            actions.some(
+              (action) => action.type === "shutdown_pc"
+            )
+          ) {
+            responseText =
+              "El ordenador se apagará en 30 segundos.";
+          } else if (
+            actions.some(
+              (action) => action.type === "cancel_shutdown"
+            )
+          ) {
+            responseText = "He cancelado el apagado.";
+          } else if (
+            actions.some(
+              (action) => action.type === "stop_agent"
+            )
+          ) {
+            responseText = "Bruce entrando en modo de espera.";
+          } else if (
+            actions.some(
+              (action) => action.type === "wake_agent"
+            )
+          ) {
+            responseText = "Bruce está activo.";
+          } else if (
+            actions.some(
+              (action) =>
+                action.type === "website" ||
+                action.type === "app"
+            )
+          ) {
+            responseText = "Abriendo.";
+          } else if (
+            actions.some(
+              (action) =>
+                action.type === "close" ||
+                action.type === "close_website"
+            )
+          ) {
+            responseText = "Cerrando.";
+          } else if (
+            actions.some(
+              (action) => action.type === "game"
+            )
+          ) {
+            responseText = "Iniciando el juego.";
+          }
+
+          await saveMessage(
+            env,
+            sessionId,
+            "user",
+            userMessage
+          );
+
+          await saveMessage(
+            env,
+            sessionId,
+            "assistant",
+            responseText
+          );
+
+          return json({
+            response: responseText,
+            actions,
+          });
+        }
+
+        /* =================================================
+           IA NORMAL
+           ================================================= */
+
+        const history = await getHistory(
+          env,
+          sessionId
+        );
+
+        const messages = [
+          {
+            role: "system",
+            content:
+              "You are Bruce, a personal AI assistant. " +
+              "You speak Spanish by default. " +
+              "Be concise, useful, calm and intelligent. " +
+              "Your personality is inspired by a sophisticated private assistant: " +
+              "serious, composed and efficient. " +
+              "Do not claim to have performed actions that were not actually sent " +
+              "to the local computer agent.",
+          },
+          ...history,
+          {
+            role: "user",
+            content: userMessage,
+          },
+        ];
+
+        const responseText = await generateAIResponse(
+          env,
+          messages
+        );
+
+        await saveMessage(
+          env,
+          sessionId,
+          "user",
+          userMessage
+        );
+
+        await saveMessage(
+          env,
+          sessionId,
+          "assistant",
+          responseText
+        );
+
+        return json({
+          response: responseText,
+          actions: [],
+        });
+      } catch (error) {
+        console.error("Error /api/chat:", error);
+
+        return json(
+          {
+            error:
+              error.message ||
+              "Error interno del servidor.",
+          },
+          500
+        );
+      }
+    }
+
+    /* =====================================================
+       ASSETS / WEB
+    ===================================================== */
+
+    if (env.ASSETS) {
+      return env.ASSETS.fetch(request);
+    }
+
+    return textResponse("Bruce está funcionando.");
+  },
 };
