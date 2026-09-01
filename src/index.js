@@ -112,12 +112,14 @@ if (request.method === "POST" && url.pathname === "/api/chat") {
       .bind(sessionId, "user", userMessage)
       .run();
 
-    const result = await env.AI.run(
-      "@cf/openai/gpt-oss-20b",
-      {
-        messages: messages
-      }
-    );
+   const result = await env.AI.run(
+  "@cf/openai/gpt-oss-20b",
+  {
+    messages: messages
+  }
+);
+
+console.log("RESPUESTA COMPLETA DE LA IA:", JSON.stringify(result));
 
     let answer = "";
 
