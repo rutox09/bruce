@@ -103,3 +103,45 @@ event.preventDefault();
 sendMessage();
 }
 );
+async function loadHistory() {
+
+try {
+
+
+const response = await fetch(
+  WORKER_URL.replace("/api/chat", "/api/history") +
+  "?sessionId=" +
+  encodeURIComponent(sessionId)
+);
+
+const data = await response.json();
+
+if (!data.messages) {
+  return;
+}
+
+for (const message of data.messages) {
+
+  if (message.role === "user") {
+    addMessage(message.content, "user");
+  }
+
+  if (message.role === "assistant") {
+    addMessage(message.content, "bruce");
+  }
+}
+
+
+} catch (error) {
+
+
+console.error(
+  "No se pudo cargar la conversación:",
+  error
+);
+
+
+}
+}
+
+loadHistory();
