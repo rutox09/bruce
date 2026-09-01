@@ -10,12 +10,20 @@ if (!sessionId) {
 }
 
 
+// =====================================================
+// URLS
+// =====================================================
+
 const WORKER_URL =
     "https://brucewayne.aleixruto.workers.dev/api/chat";
 
 const AGENT_URL =
     "http://127.0.0.1:8765/action";
 
+
+// =====================================================
+// ELEMENTOS
+// =====================================================
 
 const chat =
     document.getElementById("chat");
@@ -26,6 +34,10 @@ const inputArea =
 const input =
     document.getElementById("messageInput");
 
+
+// =====================================================
+// MOSTRAR MENSAJE
+// =====================================================
 
 function addMessage(text, type) {
 
@@ -57,6 +69,11 @@ async function executeAction(action) {
         return;
     }
 
+    console.log(
+        "Ejecutando acción:",
+        action
+    );
+
     try {
 
         const response =
@@ -82,7 +99,7 @@ async function executeAction(action) {
 
 
         console.log(
-            "Bruce Agent:",
+            "Respuesta de Bruce Agent:",
             data
         );
 
@@ -90,7 +107,7 @@ async function executeAction(action) {
         if (!data.success) {
 
             console.error(
-                "El agente rechazó la acción:",
+                "Bruce Agent rechazó la acción:",
                 data.message
             );
         }
@@ -101,6 +118,50 @@ async function executeAction(action) {
         console.error(
             "Error conectando con Bruce Agent:",
             error
+        );
+    }
+}
+
+
+// =====================================================
+// EJECUTAR TODAS LAS ACCIONES
+// =====================================================
+
+async function executeActions(data) {
+
+    // Nuevo sistema: varias acciones
+
+    if (
+        Array.isArray(
+            data.actions
+        )
+    ) {
+
+        console.log(
+            "Acciones recibidas:",
+            data.actions
+        );
+
+        for (
+            const action
+            of data.actions
+        ) {
+
+            await executeAction(
+                action
+            );
+        }
+
+        return;
+    }
+
+
+    // Sistema antiguo: una acción
+
+    if (data.action) {
+
+        await executeAction(
+            data.action
         );
     }
 }
@@ -132,6 +193,12 @@ async function sendMessage() {
 
     try {
 
+        console.log(
+            "Enviando a Bruce:",
+            text
+        );
+
+
         const response =
             await fetch(
                 WORKER_URL,
@@ -145,10 +212,11 @@ async function sendMessage() {
 
                     body: JSON.stringify({
 
-                        message: text,
+                        message:
+                            text,
 
-                        sessionId: sessionId
-
+                        sessionId:
+                            sessionId
                     })
                 }
             );
@@ -159,7 +227,7 @@ async function sendMessage() {
 
 
         console.log(
-            "Bruce respondió:",
+            "Respuesta completa de Bruce:",
             responseText
         );
 
@@ -174,7 +242,7 @@ async function sendMessage() {
                     responseText
                 );
 
-        } catch {
+        } catch (error) {
 
             addMessage(
                 "Bruce ha devuelto una respuesta inesperada: " +
@@ -185,6 +253,10 @@ async function sendMessage() {
             return;
         }
 
+
+        // =================================================
+        // ERROR
+        // =================================================
 
         if (data.error) {
 
@@ -198,60 +270,38 @@ async function sendMessage() {
         }
 
 
+        // =================================================
+        // RESPUESTA DE BRUCE
+        // =================================================
+
         addMessage(
-            data.response,
+            data.response ||
+            "He recibido tu mensaje.",
             "bruce"
         );
 
 
         // =================================================
-        // VARIAS ACCIONES
+        // EJECUTAR ACCIONES
         // =================================================
 
-        if (
-            Array.isArray(
-                data.actions
-            )
-        ) {
-
-            for (
-                const action
-                of data.actions
-            ) {
-
-                await executeAction(
-                    action
-                );
-
-            }
-
-        }
-
-
-        // =================================================
-        // UNA ACCIÓN
-        // =================================================
-
-        else if (data.action) {
-
-            await executeAction(
-                data.action
-            );
-
-        }
+        await executeActions(
+            data
+        );
 
 
     } catch (error) {
+
+        console.error(
+            "Error general:",
+            error
+        );
+
 
         addMessage(
             "Error de conexión: " +
             error.message,
             "bruce"
-        );
-
-
-        console.error(
-            error
         );
     }
 }
@@ -305,7 +355,6 @@ async function loadHistory() {
                     message.content,
                     "user"
                 );
-
             }
 
 
@@ -325,7 +374,7 @@ async function loadHistory() {
     } catch (error) {
 
         console.error(
-            "No se pudo cargar la conversación:",
+            "No se pudo cargar el historial:",
             error
         );
     }
