@@ -1,49 +1,85 @@
-/* =====================================================
+/* =========================================================
    RESET
-===================================================== */
+========================================================= */
 
 * {
-box-sizing: border-box;
-  }
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
 
-body {
-margin: 0;
-font-family: Arial, sans-serif;
-background: #080a0f;
-color: white;
-height: 100vh;
-display: flex;
-justify-content: center;
-align-items: center;
+:root {
 
-  min-height: 100vh;
+  --background: #020304;
 
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
+  --panel: rgba(7, 10, 13, 0.91);
 
-  background:
-    radial-gradient(
-      circle at top,
-      #202020 0%,
-      #090909 45%,
-      #020202 100%
-    );
+  --panel-light: rgba(13, 17, 21, 0.92);
 
-  color: #f5f5f5;
+  --border: rgba(255, 255, 255, 0.075);
 
-  overflow: hidden;
+  --border-strong: rgba(165, 184, 198, 0.22);
+
+  --text: #e6eaed;
+
+  --muted: #6e7780;
+
+  --muted-2: #454d54;
+
+  --steel: #93aebe;
+
+  --steel-light: #b7cad5;
+
+  --green: #6ca18a;
+
 }
 
 
-/* =====================================================
+/* =========================================================
+   BODY
+========================================================= */
+
+html,
+body {
+
+  width: 100%;
+  height: 100%;
+
+}
+
+
+body {
+
+  min-height: 100vh;
+
+  background:
+
+    radial-gradient(
+      circle at 50% -20%,
+      rgba(102, 132, 150, 0.16),
+      transparent 40%
+    ),
+
+    linear-gradient(
+      180deg,
+      #0b0e12 0%,
+      #050608 48%,
+      #010202 100%
+    );
+
+  color: var(--text);
+
+  font-family: Inter, Arial, sans-serif;
+
+  overflow: hidden;
+
+}
+
+
+/* =========================================================
    FONDO
-===================================================== */
+========================================================= */
 
 .background {
 
@@ -51,35 +87,107 @@ align-items: center;
 
   inset: 0;
 
+  z-index: 0;
+
+  overflow: hidden;
+
   pointer-events: none;
 
-  z-index: 0;
 }
 
+
+/* luz */
+
+.night-glow {
+
+  position: absolute;
+
+  width: 700px;
+  height: 700px;
+
+  top: -420px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(120, 151, 170, 0.13),
+      transparent 68%
+    );
+
+  filter: blur(15px);
+
+}
+
+
+/* luna */
 
 .moon {
 
   position: absolute;
 
-  width: 420px;
-  height: 420px;
+  width: 280px;
+  height: 280px;
+
+  right: -150px;
+  top: 50px;
 
   border-radius: 50%;
-
-  right: -120px;
-  top: -150px;
 
   background:
     radial-gradient(
       circle,
-      rgba(220, 190, 100, 0.18),
-      rgba(220, 190, 100, 0.03) 60%,
-      transparent 72%
+      rgba(190, 207, 216, 0.12),
+      rgba(137, 160, 175, 0.04) 45%,
+      transparent 70%
     );
 
-  filter: blur(2px);
+  filter: blur(3px);
+
 }
 
+
+/* nubes */
+
+.cloud {
+
+  position: absolute;
+
+  width: 500px;
+  height: 130px;
+
+  border-radius: 50%;
+
+  background: rgba(111, 128, 140, 0.035);
+
+  filter: blur(30px);
+
+}
+
+
+.cloud-1 {
+
+  left: -180px;
+  bottom: 22%;
+
+}
+
+
+.cloud-2 {
+
+  right: -220px;
+  bottom: 34%;
+
+}
+
+
+/* =========================================================
+   CIUDAD
+========================================================= */
 
 .city {
 
@@ -87,50 +195,129 @@ align-items: center;
 
   left: 0;
   right: 0;
+
   bottom: 0;
 
-  height: 160px;
+  height: 190px;
 
-  opacity: 0.22;
+  display: flex;
 
-  background:
-    linear-gradient(
-      to top,
-      #000 0%,
-      transparent 100%
-    );
+  align-items: flex-end;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  opacity: 0.25;
+
 }
 
 
-/* =====================================================
-   APP
-===================================================== */
+.city span {
 
-.app {
-width: 100%;
-max-width: 900px;
-height: 90vh;
-background: #11141b;
-border: 1px solid #292e38;
-border-radius: 16px;
-display: flex;
-flex-direction: column;
-overflow: hidden;
+  display: block;
+
+  width: 10%;
+
+  min-width: 45px;
+
+  background:
+
+    linear-gradient(
+      to top,
+      #000,
+      #11161a
+    );
+
+  border-top: 1px solid
+    rgba(180, 198, 208, 0.04);
+
+}
+
+
+.city span:nth-child(1) {
+  height: 40%;
+}
+
+.city span:nth-child(2) {
+  height: 62%;
+}
+
+.city span:nth-child(3) {
+  height: 48%;
+}
+
+.city span:nth-child(4) {
+  height: 78%;
+}
+
+.city span:nth-child(5) {
+  height: 56%;
+}
+
+.city span:nth-child(6) {
+  height: 70%;
+}
+
+.city span:nth-child(7) {
+  height: 45%;
+}
+
+.city span:nth-child(8) {
+  height: 65%;
+}
+
+.city span:nth-child(9) {
+  height: 52%;
+}
+
+.city span:nth-child(10) {
+  height: 73%;
+}
+
+
+/* =========================================================
+   LLUVIA
+========================================================= */
+
+.rain {
+
+  position: absolute;
+
+  inset: 0;
+
+  opacity: 0.045;
+
+  background-image:
+
+    repeating-linear-gradient(
+      105deg,
+      transparent 0 4px,
+      rgba(255,255,255,0.20) 5px,
+      transparent 6px 18px
+    );
+
+}
+
+
+/* =========================================================
+   APP
+========================================================= */
+
+.bruce-app {
 
   position: relative;
 
-  z-index: 1;
+  z-index: 2;
 
   width: min(
-    100% - 30px,
-    1000px
+    calc(100% - 32px),
+    1250px
   );
 
-  height: calc(
-    100vh - 30px
-  );
+  height: calc(100vh - 32px);
 
-  margin: 15px auto;
+  margin: 16px auto;
 
   display: flex;
 
@@ -138,32 +325,43 @@ overflow: hidden;
 
   overflow: hidden;
 
-  border: 1px solid
-    rgba(202, 169, 74, 0.35);
+  border:
+
+    1px solid
+    rgba(145, 169, 183, 0.16);
 
   border-radius: 18px;
 
   background:
+
     linear-gradient(
       145deg,
-      rgba(25, 25, 25, 0.96),
-      rgba(5, 5, 5, 0.97)
+      rgba(11, 14, 18, 0.96),
+      rgba(3, 5, 7, 0.98)
     );
 
   box-shadow:
-    0 30px 80px
-      rgba(0, 0, 0, 0.7),
+
+    0 40px 100px
+      rgba(0,0,0,0.65),
 
     inset 0 1px
-      rgba(255, 255, 255, 0.04);
+      rgba(255,255,255,0.04);
+
+  backdrop-filter: blur(22px);
+
 }
 
 
-/* =====================================================
+/* =========================================================
    TOPBAR
-===================================================== */
+========================================================= */
 
 .topbar {
+
+  flex: 0 0 auto;
+
+  height: 78px;
 
   display: flex;
 
@@ -171,16 +369,21 @@ overflow: hidden;
 
   justify-content: space-between;
 
-  padding: 22px 26px;
+  padding: 0 26px;
+
+  border-bottom:
+
+    1px solid
+    rgba(255,255,255,0.055);
 
   background:
-    linear-gradient(
-      90deg,
-      rgba(255,255,255,0.025),
-      transparent
-    );
+
+    rgba(4,6,8,0.65);
+
 }
 
+
+/* marca */
 
 .brand {
 
@@ -188,82 +391,85 @@ overflow: hidden;
 
   align-items: center;
 
-  gap: 14px;
+  gap: 13px;
+
 }
 
 
-.bat-logo {
+.logo {
 
-  width: 52px;
-  height: 52px;
+  width: 43px;
+  height: 43px;
 
   display: flex;
 
   align-items: center;
   justify-content: center;
 
-  border-radius: 12px;
+  border-radius: 11px;
+
+  border:
+
+    1px solid
+    rgba(167, 190, 204, 0.30);
 
   background:
+
     linear-gradient(
       145deg,
-      #d8b85b,
-      #8d6b20
+      rgba(125, 154, 171, 0.16),
+      rgba(53, 67, 78, 0.05)
     );
 
+  color: #c0ced6;
+
+  font-family: Orbitron, sans-serif;
+
+  font-weight: 700;
+
+  font-size: 17px;
+
   box-shadow:
-    0 0 22px
-      rgba(210, 178, 74, 0.22);
+
+    0 0 25px
+    rgba(116,148,165,0.08);
+
 }
 
-header {
-padding: 20px 25px;
-border-bottom: 1px solid #292e38;
-display: flex;
-align-items: center;
-gap: 15px;
 
-.bat-logo span {
-
-  font-size: 26px;
-
-  filter:
-    grayscale(1)
-    brightness(0.15);
-}
-
+/* texto */
 
 .brand-text h1 {
 
-  font-size: 22px;
+  font-family: Orbitron, sans-serif;
+
+  font-size: 18px;
 
   letter-spacing: 5px;
 
-  font-weight: 700;
+  font-weight: 600;
+
 }
 
 
-.brand-text p {
+.brand-text span {
+
+  display: block;
 
   margin-top: 4px;
 
-  font-size: 10px;
+  color: #56616a;
 
-  letter-spacing: 3px;
+  font-size: 7px;
 
-  color: #999;
+  letter-spacing: 2px;
+
 }
 
-.logo {
-width: 45px;
-height: 45px;
-border-radius: 50%;
-background: #1c2029;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 22px;
-font-weight: bold;
+
+/* =========================================================
+   STATUS
+========================================================= */
 
 .status {
 
@@ -271,132 +477,1144 @@ font-weight: bold;
 
   align-items: center;
 
-  gap: 8px;
+  gap: 9px;
 
-  color: #b7b7b7;
-
-  font-size: 11px;
-
-  letter-spacing: 2px;
 }
 
-h1 {
-margin: 0;
-font-size: 21px;
 
 .status-dot {
 
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 
   border-radius: 50%;
 
-  background: #c7a94c;
+  background: var(--green);
 
   box-shadow:
-    0 0 10px
-      rgba(199, 169, 76, 0.9);
+    0 0 12px
+    rgba(108,161,138,0.7);
+
 }
 
-header p {
-margin: 4px 0 0;
-color: #8e96a3;
-font-size: 13px;
 
-/* =====================================================
-   SEPARADOR
-===================================================== */
+.status strong {
 
-.separator {
+  display: block;
+
+  color: #b5bec5;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 7px;
+
+  letter-spacing: 2px;
+
+}
+
+
+.status small {
+
+  display: block;
+
+  margin-top: 4px;
+
+  color: #4c555d;
+
+  font-size: 7px;
+
+  letter-spacing: 1px;
+
+}
+
+
+/* =========================================================
+   SYSTEM LINE
+========================================================= */
+
+.system-line {
+
+  flex: 0 0 auto;
+
+  height: 24px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 12px;
+
+  color: #343c43;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 2px;
+
+}
+
+
+.system-line span {
+
+  width: 70px;
 
   height: 1px;
 
   background:
+
     linear-gradient(
       90deg,
       transparent,
-      rgba(201, 169, 75, 0.35),
-      transparent
+      rgba(140,165,180,0.14)
     );
+
 }
 
 
-/* =====================================================
-   CHAT
-===================================================== */
+.system-line span:last-child {
 
-#chat {
-flex: 1;
-padding: 25px;
-overflow-y: auto;
-display: flex;
-flex-direction: column;
-gap: 15px;
+  background:
+
+    linear-gradient(
+      90deg,
+      rgba(140,165,180,0.14),
+      transparent
+    );
+
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.main-content {
 
   flex: 1;
 
-  overflow-y: auto;
+  min-height: 0;
 
-  padding: 28px;
+  display: flex;
+
+}
+
+
+/* =========================================================
+   SIDE PANEL
+========================================================= */
+
+.side-panel {
+
+  width: 250px;
+
+  flex: 0 0 250px;
+
+  padding: 18px;
+
+  border-right:
+
+    1px solid
+    rgba(255,255,255,0.055);
+
+  background:
+
+    rgba(4,6,8,0.42);
+
+}
+
+
+.system-card {
+
+  padding: 16px;
+
+  margin-bottom: 15px;
+
+  border:
+
+    1px solid
+    rgba(255,255,255,0.055);
+
+  border-radius: 12px;
+
+  background:
+
+    linear-gradient(
+      145deg,
+      rgba(16,20,24,0.72),
+      rgba(6,8,10,0.76)
+    );
+
+}
+
+
+.card-title {
+
+  margin-bottom: 14px;
+
+  color: #59646d;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 7px;
+
+  letter-spacing: 2px;
+
+}
+
+
+.system-row {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 8px;
+
+  padding: 9px 0;
+
+  border-bottom:
+
+    1px solid
+    rgba(255,255,255,0.035);
+
+}
+
+
+.system-row:last-child {
+
+  border-bottom: 0;
+
+}
+
+
+.system-row span {
+
+  color: #5c656d;
+
+  font-size: 7px;
+
+  letter-spacing: .5px;
+
+}
+
+
+.system-row strong {
+
+  flex-shrink: 0;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 1px;
+
+}
+
+
+.online {
+
+  color: #7ba590;
+
+}
+
+
+/* =========================================================
+   REACTOR
+========================================================= */
+
+.bruce-core-card {
+
+  padding-bottom: 18px;
+
+}
+
+
+.reactor {
+
+  position: relative;
+
+  width: 150px;
+
+  height: 150px;
+
+  margin: 8px auto 10px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+}
+
+
+.reactor-ring {
+
+  position: absolute;
+
+  border-radius: 50%;
+
+  border:
+
+    1px solid
+    rgba(145,173,188,0.16);
+
+}
+
+
+.ring-1 {
+
+  width: 150px;
+
+  height: 150px;
+
+  border-style: dashed;
+
+  animation:
+    spinOne
+    18s
+    linear
+    infinite;
+
+}
+
+
+.ring-2 {
+
+  width: 116px;
+
+  height: 116px;
+
+  border-color:
+    rgba(145,173,188,0.23);
+
+  animation:
+    spinTwo
+    12s
+    linear
+    infinite;
+
+}
+
+
+.ring-3 {
+
+  width: 82px;
+
+  height: 82px;
+
+  border-color:
+    rgba(173,198,211,0.34);
+
+}
+
+
+.reactor-line {
+
+  position: absolute;
+
+  background:
+    rgba(150,178,193,0.10);
+
+}
+
+
+.line-x {
+
+  width: 164px;
+  height: 1px;
+
+}
+
+
+.line-y {
+
+  width: 1px;
+  height: 164px;
+
+}
+
+
+.reactor-core {
+
+  position: relative;
+
+  z-index: 2;
+
+  width: 46px;
+  height: 46px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  border:
+
+    1px solid
+    rgba(179,203,215,0.46);
+
+  background:
+
+    radial-gradient(
+      circle,
+      rgba(146,174,188,0.22),
+      rgba(73,92,104,0.05)
+    );
+
+  color: #bfced7;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 16px;
+
+  box-shadow:
+
+    0 0 35px
+      rgba(118,153,170,0.12),
+
+    inset 0 0 20px
+      rgba(139,169,185,0.08);
+
+}
+
+
+.reactor-status {
+
+  text-align: center;
+
+  color: #718794;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 3px;
+
+}
+
+
+@keyframes spinOne {
+
+  to {
+    transform: rotate(360deg);
+  }
+
+}
+
+
+@keyframes spinTwo {
+
+  to {
+    transform: rotate(-360deg);
+  }
+
+}
+
+
+/* =========================================================
+   FRASE
+========================================================= */
+
+.quote {
+
+  padding: 4px 3px;
+
+  color: #3d464d;
+
+  font-family: Inter, sans-serif;
+
+  font-size: 8px;
+
+  font-style: italic;
+
+  line-height: 1.6;
+
+}
+
+
+.quote span {
+
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #697b87;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 9px;
+
+}
+
+
+/* =========================================================
+   CHAT CONTAINER
+========================================================= */
+
+.chat-container {
+
+  flex: 1;
+
+  min-width: 0;
+
+  min-height: 0;
 
   display: flex;
 
   flex-direction: column;
 
-  gap: 16px;
+}
 
-  scrollbar-width: thin;
 
-  scrollbar-color:
-    #4f4f4f
-    transparent;
+/* =========================================================
+   CHAT HEADER
+========================================================= */
+
+.chat-header {
+
+  flex: 0 0 auto;
+
+  height: 62px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 0 24px;
+
+  border-bottom:
+
+    1px solid
+    rgba(255,255,255,0.045);
+
+}
+
+
+.small-label {
+
+  display: block;
+
+  color: #56616a;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 2px;
+
+}
+
+
+.chat-header h2 {
+
+  margin-top: 5px;
+
+  color: #cdd4d9;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 11px;
+
+  font-weight: 500;
+
+  letter-spacing: 2px;
+
+}
+
+
+.chat-indicator {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  color: #53616a;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 1px;
+
+}
+
+
+.chat-indicator span {
+
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #6e9d88;
+
+  box-shadow:
+    0 0 8px
+    rgba(110,157,136,0.6);
+
+}
+
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+#chat {
+
+  flex: 1;
+
+  min-height: 0;
+
+  overflow-y: auto;
+
+  padding: 24px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 15px;
+
+  scroll-behavior: smooth;
+
 }
 
 
 #chat::-webkit-scrollbar {
 
-  width: 6px;
+  width: 5px;
+
+}
+
+
+#chat::-webkit-scrollbar-track {
+
+  background: transparent;
+
 }
 
 
 #chat::-webkit-scrollbar-thumb {
 
-  background: #454545;
+  background:
+    rgba(255,255,255,0.08);
 
   border-radius: 10px;
+
 }
 
 
-/* =====================================================
+.chat {
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    rgba(255,255,255,0.12)
+    transparent;
+
+}
+
+
+/* =========================================================
+   CONVERSACIÓN INICIAL
+========================================================= */
+
+.conversation-start {
+
+  margin-bottom: 8px;
+
+  color: #475057;
+
+}
+
+
+.conversation-line {
+
+  width: 45px;
+
+  height: 1px;
+
+  margin-bottom: 9px;
+
+  background: #687985;
+
+  opacity: .35;
+
+}
+
+
+.conversation-start span {
+
+  display: block;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 2px;
+
+}
+
+
+.conversation-start small {
+
+  display: block;
+
+  margin-top: 4px;
+
+  color: #30383e;
+
+  font-size: 7px;
+
+  letter-spacing: 1px;
+
+}
+
+
+/* =========================================================
    MENSAJES
-===================================================== */
+========================================================= */
 
 .message {
-max-width: 75%;
-padding: 13px 16px;
-border-radius: 14px;
-line-height: 1.5;
-white-space: pre-wrap;
 
-  max-width: 78%;
+  max-width: min(760px, 78%);
 
-  padding: 14px 16px;
+  padding: 13px 16px;
 
-  border-radius: 14px;
+  border-radius: 11px;
 
-  line-height: 1.55;
+  line-height: 1.6;
 
-  font-size: 15px;
+  font-size: 14px;
+
+  white-space: pre-wrap;
+
+  word-break: break-word;
 
   animation:
     messageIn
-    0.2s
-    ease;
+    .22s
+    ease-out;
+
 }
 
-.user {
-align-self: flex-end;
-background: #2b303a;
+
+.message.bruce {
+
+  align-self: flex-start;
+
+  background:
+
+    linear-gradient(
+      145deg,
+      rgba(25,30,35,0.95),
+      rgba(11,14,17,0.96)
+    );
+
+  border:
+
+    1px solid
+    rgba(163,184,196,0.12);
+
+  border-left:
+
+    2px solid
+    rgba(137,165,180,0.45);
+
+  box-shadow:
+
+    0 10px 30px
+      rgba(0,0,0,0.18);
+
+}
+
+
+.message.user {
+
+  align-self: flex-end;
+
+  background:
+
+    linear-gradient(
+      145deg,
+      rgba(68,82,93,0.48),
+      rgba(31,39,45,0.65)
+    );
+
+  border:
+
+    1px solid
+    rgba(166,184,195,0.14);
+
+  border-right:
+
+    2px solid
+    rgba(174,197,210,0.34);
+
+  color: #e4e8eb;
+
+}
+
+
+/* cabecera interna */
+
+.message-header {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 8px;
+
+}
+
+
+.avatar {
+
+  width: 24px;
+  height: 24px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 6px;
+
+  border:
+    1px solid
+    rgba(165,188,200,0.24);
+
+  background:
+    rgba(131,159,174,0.08);
+
+  color: #a9bdc9;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 8px;
+
+}
+
+
+.message-header span {
+
+  font-family: Orbitron, sans-serif;
+
+  color: #a2b2bc;
+
+  font-size: 7px;
+
+  letter-spacing: 2px;
+
+}
+
+
+.message-header small {
+
+  color: #4b555d;
+
+  font-size: 6px;
+
+}
+
+
+/* texto */
+
+.message-content {
+
+  color: #d9dee2;
+
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+.input-area {
+
+  flex: 0 0 auto;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin: 0 20px 17px;
+
+  padding: 8px;
+
+  border-radius: 12px;
+
+  border:
+    1px solid
+    rgba(255,255,255,0.075);
+
+  background:
+    rgba(255,255,255,0.025);
+
+  box-shadow:
+    inset 0 1px
+    rgba(255,255,255,0.018);
+
+}
+
+
+/* =========================================================
+   MIC
+========================================================= */
+
+.icon-button {
+
+  flex: 0 0 42px;
+
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border:
+
+    1px solid
+    rgba(139,166,181,0.20);
+
+  border-radius: 9px;
+
+  background:
+    rgba(122,150,165,0.06);
+
+  color: #9db1bc;
+
+  cursor: pointer;
+
+  transition:
+    0.2s ease;
+
+}
+
+
+.icon-button:hover {
+
+  transform: translateY(-1px);
+
+  border-color:
+    rgba(155,185,200,0.42);
+
+  background:
+    rgba(120,150,168,0.11);
+
+  box-shadow:
+    0 0 18px
+    rgba(110,145,162,0.07);
+
+}
+
+
+.mic-icon {
+
+  font-size: 15px;
+
+}
+
+
+/* =========================================================
+   INPUT WRAPPER
+========================================================= */
+
+.input-wrapper {
+
+  position: relative;
+
+  flex: 1;
+
+  min-width: 0;
+
+}
+
+
+#messageInput {
+
+  width: 100%;
+
+  height: 42px;
+
+  border: none;
+
+  outline: none;
+
+  padding:
+    0 80px 0 9px;
+
+  background: transparent;
+
+  color: #e2e7ea;
+
+  font-family: Inter, Arial, sans-serif;
+
+  font-size: 13px;
+
+}
+
+
+#messageInput::placeholder {
+
+  color: #58626a;
+
+}
+
+
+.input-status {
+
+  position: absolute;
+
+  top: 50%;
+
+  right: 8px;
+
+  transform: translateY(-50%);
+
+  color: #424b52;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 1px;
+
+  pointer-events: none;
+
+}
+
+
+/* =========================================================
+   SEND
+========================================================= */
+
+.send-button {
+
+  flex: 0 0 auto;
+
+  height: 42px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding:
+    0 16px;
+
+  border:
+
+    1px solid
+    rgba(145,171,185,0.20);
+
+  border-radius: 8px;
+
+  background:
+    rgba(122,150,168,0.08);
+
+  color: #afc2cc;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 7px;
+
+  letter-spacing: 1.5px;
+
+  cursor: pointer;
+
+  transition:
+    0.2s ease;
+
+}
+
+
+.send-button:hover {
+
+  border-color:
+    rgba(160,187,201,0.42);
+
+  background:
+    rgba(125,153,170,0.14);
+
+}
+
+
+.send-arrow {
+
+  font-size: 14px;
+
+  line-height: 1;
+
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+footer {
+
+  flex: 0 0 auto;
+
+  height: 28px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding:
+    0 22px;
+
+  border-top:
+
+    1px solid
+    rgba(255,255,255,0.035);
+
+  color: #323a40;
+
+  font-family: Orbitron, sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 1.5px;
+
+}
+
+
+.footer-center {
+
+  opacity: .7;
+
+}
+
+
+/* =========================================================
+   ANIMACIÓN MENSAJES
+========================================================= */
 
 @keyframes messageIn {
 
@@ -405,7 +1623,7 @@ background: #2b303a;
     opacity: 0;
 
     transform:
-      translateY(8px);
+      translateY(7px);
 
   }
 
@@ -417,284 +1635,23 @@ background: #2b303a;
       translateY(0);
 
   }
+
 }
 
 
-.message-name {
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 
-  margin-bottom: 6px;
+@media (max-width: 850px) {
 
-  font-size: 9px;
+  .side-panel {
 
-  letter-spacing: 2px;
+    display: none;
 
-  color: #c9aa50;
+  }
 
-  font-weight: 700;
-}
-
-
-.message.bruce {
-
-  align-self: flex-start;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(37, 37, 37, 0.96),
-      rgba(19, 19, 19, 0.96)
-    );
-
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.06);
-
-  box-shadow:
-    0 8px 25px
-      rgba(0, 0, 0, 0.25);
-}
-
-.bruce {
-align-self: flex-start;
-background: #181c24;
-border: 1px solid #292e38;
-
-.message.user {
-
-  align-self: flex-end;
-
-  background:
-    linear-gradient(
-      145deg,
-      #be9b3f,
-      #81621e
-    );
-
-  color: #070707;
-
-  font-weight: 600;
-
-  box-shadow:
-    0 8px 25px
-      rgba(0, 0, 0, 0.35);
-}
-
-
-/* =====================================================
-   INPUT
-===================================================== */
-
-#inputArea {
-padding: 18px;
-border-top: 1px solid #292e38;
-display: flex;
-gap: 10px;
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 10px;
-
-  margin: 0 22px 18px;
-
-  padding: 10px;
-
-  border-radius: 14px;
-
-  background:
-    rgba(255,255,255,0.035);
-
-  border:
-    1px solid
-    rgba(255,255,255,0.07);
-}
-
-
-#messageInput {
-flex: 1;
-background: #181c24;
-color: white;
-border: 1px solid #303641;
-border-radius: 10px;
-padding: 14px;
-outline: none;
-font-size: 15px;
-
-  flex: 1;
-
-  min-width: 0;
-
-  border: none;
-
-  outline: none;
-
-  background:
-    transparent;
-
-  color: white;
-
-  font-size: 15px;
-
-  padding: 12px 8px;
-}
-
-#messageInput:focus {
-border-color: #596273;
-
-#messageInput::placeholder {
-
-  color: #737373;
-}
-
-button {
-border: none;
-border-radius: 10px;
-padding: 0 20px;
-background: white;
-color: black;
-cursor: pointer;
-font-weight: bold;
-
-/* =====================================================
-   MICRO
-===================================================== */
-
-.mic-button {
-
-  width: 44px;
-  height: 44px;
-
-  flex-shrink: 0;
-
-  border: 1px solid
-    rgba(199, 169, 76, 0.25);
-
-  border-radius: 10px;
-
-  background:
-    rgba(255,255,255,0.035);
-
-  color: white;
-
-  cursor: pointer;
-
-  font-size: 18px;
-
-  transition:
-    0.2s ease;
-}
-
-button:hover {
-background: #dfe3e8;
-
-.mic-button:hover {
-
-  border-color:
-    rgba(199, 169, 76, 0.7);
-
-  background:
-    rgba(199, 169, 76, 0.08);
-
-  transform:
-    translateY(-1px);
-}
-
-
-.mic-button:disabled {
-
-  opacity: 0.4;
-
-  cursor: not-allowed;
-}
-
-
-/* =====================================================
-   ENVIAR
-===================================================== */
-
-.send-button {
-
-  height: 44px;
-
-  padding:
-    0 18px;
-
-  border: none;
-
-  border-radius: 10px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #d1af4f,
-      #98762a
-    );
-
-  color: #090909;
-
-  font-size: 11px;
-
-  font-weight: 700;
-
-  letter-spacing: 1.5px;
-
-  cursor: pointer;
-
-  transition:
-    0.2s ease;
-}
-
-
-.send-button:hover {
-
-  transform:
-    translateY(-1px);
-
-  box-shadow:
-    0 5px 20px
-      rgba(194, 160, 64, 0.22);
-}
-
-
-.send-button:active {
-
-  transform:
-    translateY(0);
-}
-
-
-/* =====================================================
-   FOOTER
-===================================================== */
-
-footer {
-
-  display: flex;
-
-  justify-content: space-between;
-
-  padding:
-    0 26px
-    16px;
-
-  color: #555;
-
-  font-size: 9px;
-
-  letter-spacing: 1.5px;
-}
-
-
-/* =====================================================
-   MÓVIL
-===================================================== */
-
-@media (
-  max-width: 600px
-) {
-
-  .app {
+  .bruce-app {
 
     width: 100%;
 
@@ -707,41 +1664,104 @@ footer {
     border-left: none;
 
     border-right: none;
+
   }
 
+}
+
+
+@media (max-width: 600px) {
 
   .topbar {
 
+    height: 68px;
+
     padding:
-      18px;
+      0 16px;
+
+  }
+
+
+  .brand-text span {
+
+    display: none;
+
+  }
+
+
+  .status small {
+
+    display: none;
+
+  }
+
+
+  .system-line {
+
+    display: none;
+
+  }
+
+
+  .chat-header {
+
+    padding:
+      0 16px;
+
   }
 
 
   #chat {
 
     padding:
-      18px;
+      18px 14px;
+
   }
 
 
   .message {
 
     max-width: 88%;
+
+    font-size: 13px;
+
   }
 
 
-  #inputArea {
+  .input-area {
 
     margin:
-      0 12px 12px;
+      0 10px 10px;
+
+  }
+
+
+  .input-status {
+
+    display: none;
+
+  }
+
+
+  .send-button {
+
+    padding:
+      0 13px;
+
+  }
+
+
+  .send-button span:first-child {
+
+    display: none;
+
   }
 
 
   footer {
 
-    padding:
-      0 18px
-      12px;
+    display: none;
+
   }
 
 }
