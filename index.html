@@ -1,157 +1,238 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+  <title>Bruce</title>
 
-  <title>Bruce · Personal Assistant</title>
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
+  <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
-  <!-- Fondo decorativo -->
-
   <div class="background">
-    <div class="city"></div>
-    <div class="moon"></div>
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    <div class="grid"></div>
   </div>
 
+  <main class="bruce-app">
 
-  <main class="app">
-
-    <!-- ================================= -->
-    <!-- CABECERA -->
-    <!-- ================================= -->
+    <!-- HEADER -->
 
     <header class="topbar">
 
       <div class="brand">
 
-        <div class="bat-logo">
-          <span>🦇</span>
+        <div class="logo">
+          B
         </div>
 
         <div class="brand-text">
-
           <h1>BRUCE</h1>
-
-          <p>
-            PERSONAL ASSISTANT
-          </p>
-
+          <span>PERSONAL AI SYSTEM</span>
         </div>
 
       </div>
-
 
       <div class="status">
 
         <span class="status-dot"></span>
 
-        <span>
-          ONLINE
-        </span>
+        <div>
+          <strong>ONLINE</strong>
+          <small>Cloud System</small>
+        </div>
 
       </div>
 
     </header>
 
 
-    <!-- ================================= -->
-    <!-- SEPARADOR -->
-    <!-- ================================= -->
+    <!-- CONTENIDO -->
 
-    <div class="separator"></div>
+    <section class="main-content">
 
+      <!-- PANEL LATERAL -->
 
-    <!-- ================================= -->
-    <!-- CHAT -->
-    <!-- ================================= -->
+      <aside class="side-panel">
 
-    <section id="chat">
+        <div class="system-card">
 
-      <div class="message bruce">
+          <div class="card-title">
+            SYSTEM STATUS
+          </div>
 
-        <div class="message-name">
-          BRUCE
+          <div class="system-row">
+            <span>AI</span>
+            <strong class="online">ONLINE</strong>
+          </div>
+
+          <div class="system-row">
+            <span>MEMORY</span>
+            <strong class="online">ACTIVE</strong>
+          </div>
+
+          <div class="system-row">
+            <span>VOICE</span>
+            <strong class="online">READY</strong>
+          </div>
+
+          <div class="system-row">
+            <span>PC LINK</span>
+            <strong class="online">CONNECTED</strong>
+          </div>
+
         </div>
 
-        <div class="message-content">
-          Buenas. Soy Bruce. ¿En qué puedo ayudarte?
+
+        <div class="system-card">
+
+          <div class="card-title">
+            BRUCE
+          </div>
+
+          <div class="reactor">
+
+            <div class="reactor-ring ring-1"></div>
+            <div class="reactor-ring ring-2"></div>
+            <div class="reactor-ring ring-3"></div>
+
+            <div class="reactor-core">
+              B
+            </div>
+
+          </div>
+
+          <div class="reactor-status">
+            READY
+          </div>
+
         </div>
 
-      </div>
+      </aside>
+
+
+      <!-- CHAT -->
+
+      <section class="chat-container">
+
+        <div id="chat" class="chat">
+
+          <div class="message bruce">
+
+            <div class="message-header">
+
+              <div class="avatar">
+                B
+              </div>
+
+              <span>BRUCE</span>
+
+              <small>NOW</small>
+
+            </div>
+
+            <div class="message-content">
+              Buenas. Soy Bruce. ¿En qué puedo ayudarte?
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- INPUT -->
+
+        <form id="inputArea" class="input-area">
+
+          <button
+            type="button"
+            id="micButton"
+            class="icon-button"
+            title="Hablar con Bruce"
+          >
+            <span class="mic-icon">●</span>
+          </button>
+
+
+          <div class="input-wrapper">
+
+            <input
+              id="messageInput"
+              type="text"
+              placeholder="Escribe una orden para Bruce..."
+              autocomplete="off"
+            >
+
+            <div class="input-status">
+              BRUCE READY
+            </div>
+
+          </div>
+
+
+          <button
+            type="submit"
+            class="send-button"
+          >
+            <span>ENVIAR</span>
+            <span class="send-arrow">➜</span>
+          </button>
+
+        </form>
+
+      </section>
 
     </section>
 
 
-    <!-- ================================= -->
-    <!-- ENTRADA -->
-    <!-- ================================= -->
-
-    <form id="inputArea">
-
-      <button
-        type="button"
-        id="micButton"
-        class="mic-button"
-        title="Hablar con Bruce"
-        aria-label="Hablar con Bruce"
-      >
-        🎙️
-      </button>
-
-
-      <input
-        id="messageInput"
-        type="text"
-        placeholder="Escribe a Bruce..."
-        autocomplete="off"
-      >
-
-
-      <button
-        type="submit"
-        class="send-button"
-      >
-        ENVIAR
-      </button>
-
-    </form>
-
-
-    <!-- ================================= -->
-    <!-- PIE -->
-    <!-- ================================= -->
+    <!-- FOOTER -->
 
     <footer>
 
-      <span>
-        BRUCE WAYNE PERSONAL SYSTEM
-      </span>
+      <div>
+        BRUCE AI
+      </div>
 
-      <span>
-        v1.0
-      </span>
+      <div>
+        SYSTEM SECURE
+      </div>
+
+      <div id="clock">
+        00:00:00
+      </div>
 
     </footer>
 
   </main>
 
 
+  <script>
+
+    function updateClock() {
+
+      const clock = document.getElementById("clock");
+
+      if (!clock) return;
+
+      const now = new Date();
+
+      clock.textContent =
+        now.toLocaleTimeString("es-ES", {
+          hour12: false
+        });
+
+    }
+
+    updateClock();
+
+    setInterval(updateClock, 1000);
+
+  </script>
+
   <script src="script.js"></script>
 
 </body>
-
 </html>
