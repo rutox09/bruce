@@ -173,9 +173,6 @@ export default {
                 model_id:
                   "eleven_multilingual_v2",
 
-                language_code:
-                  "es",
-
                 voice_settings: {
 
                   stability:
@@ -380,10 +377,13 @@ Las aplicaciones disponibles son:
 El juego disponible es:
 - Rocket League
 
-Cuando el usuario haga una petición de control del ordenador,
-devuelve una acción.
+También puedes:
+- apagar el ordenador
+- cancelar un apagado
+- cerrar Bruce Agent
 
-No escribas explicaciones sobre las acciones.
+Cuando el usuario haga una petición de control del ordenador,
+puedes ejecutar una acción.
 `
           }
         ];
@@ -430,7 +430,7 @@ No escribas explicaciones sobre las acciones.
 
 
         // =================================================
-        // DETECCIÓN DIRECTA
+        // NORMALIZAR TEXTO
         // =================================================
 
         const text =
@@ -442,6 +442,10 @@ No escribas explicaciones sobre las acciones.
               ""
             );
 
+
+        // =================================================
+        // ELEMENTOS DISPONIBLES
+        // =================================================
 
         const websites = {
 
@@ -519,11 +523,21 @@ No escribas explicaciones sobre las acciones.
         };
 
 
+        // =================================================
+        // ACCIONES
+        // =================================================
+
         const actions = [];
 
+        let reply = "";
+
+
+        // =================================================
+        // DETECTAR INTENCIÓN
+        // =================================================
 
         const wantsClose =
-          /\b(cierra|cerrar|cerrame|cierra la|cierra el|cerrar la|cerrar el)\b/
+          /\b(cierra|cerrar|cerrame|deten|detener|apaga|apagar)\b/
             .test(text);
 
 
@@ -533,14 +547,95 @@ No escribas explicaciones sobre las acciones.
 
 
         // =================================================
-        // CERRAR
+        // APAGAR ORDENADOR
         // =================================================
 
-        if (wantsClose) {
+        if (
+          text.includes(
+            "apaga el ordenador"
+          ) ||
+          text.includes(
+            "apaga el pc"
+          ) ||
+          text.includes(
+            "apagar el ordenador"
+          ) ||
+          text.includes(
+            "apagar el pc"
+          )
+        ) {
+
+          actions.push({
+            type:
+              "shutdown_pc"
+          });
+
+          reply =
+            "Apagando el ordenador en 30 segundos.";
+        }
+
+
+        // =================================================
+        // CANCELAR APAGADO
+        // =================================================
+
+        else if (
+          text.includes(
+            "cancela el apagado"
+          ) ||
+          text.includes(
+            "cancelar el apagado"
+          ) ||
+          text.includes(
+            "cancela el apagado del ordenador"
+          )
+        ) {
+
+          actions.push({
+            type:
+              "cancel_shutdown"
+          });
+
+          reply =
+            "He cancelado el apagado.";
+        }
+
+
+        // =================================================
+        // CERRAR BRUCE
+        // =================================================
+
+        else if (
+          text === "cierra bruce" ||
+          text === "cerrar bruce" ||
+          text.includes("deten bruce") ||
+          text.includes("detener bruce") ||
+          text.includes("apaga bruce")
+        ) {
+
+          actions.push({
+            type:
+              "stop_agent"
+          });
+
+          reply =
+            "Cerrando Bruce.";
+        }
+
+
+        // =================================================
+        // CERRAR WEBS
+        // =================================================
+
+        else if (
+          wantsClose
+        ) {
 
           for (
             const [id, aliases]
-            of Object.entries(websites)
+            of Object.entries(
+              websites
+            )
           ) {
 
             if (
@@ -562,9 +657,15 @@ No escribas explicaciones sobre las acciones.
           }
 
 
+          // =================================================
+          // CERRAR APPS
+          // =================================================
+
           for (
             const [id, aliases]
-            of Object.entries(apps)
+            of Object.entries(
+              apps
+            )
           ) {
 
             if (
@@ -586,9 +687,15 @@ No escribas explicaciones sobre las acciones.
           }
 
 
+          // =================================================
+          // CERRAR JUEGOS
+          // =================================================
+
           for (
             const [id, aliases]
-            of Object.entries(games)
+            of Object.entries(
+              games
+            )
           ) {
 
             if (
@@ -607,6 +714,21 @@ No escribas explicaciones sobre las acciones.
                   id
               });
             }
+          }
+
+
+          if (
+            actions.length > 0
+          ) {
+
+            const names =
+              actions.map(
+                action =>
+                  action.target
+              );
+
+            reply =
+              `Cerrando ${names.join(", ")}.`;
           }
         }
 
@@ -615,11 +737,19 @@ No escribas explicaciones sobre las acciones.
         // ABRIR
         // =================================================
 
-        if (wantsOpen) {
+        if (
+          wantsOpen
+        ) {
+
+          // -----------------------------------------------
+          // WEBS
+          // -----------------------------------------------
 
           for (
             const [id, aliases]
-            of Object.entries(websites)
+            of Object.entries(
+              websites
+            )
           ) {
 
             if (
@@ -629,21 +759,36 @@ No escribas explicaciones sobre las acciones.
               )
             ) {
 
-              actions.push({
+              const exists =
+                actions.some(
+                  action =>
+                    action.target === id
+                );
 
-                type:
-                  "website",
+              if (!exists) {
 
-                target:
-                  id
-              });
+                actions.push({
+
+                  type:
+                    "website",
+
+                  target:
+                    id
+                });
+              }
             }
           }
 
 
+          // -----------------------------------------------
+          // APPS
+          // -----------------------------------------------
+
           for (
             const [id, aliases]
-            of Object.entries(apps)
+            of Object.entries(
+              apps
+            )
           ) {
 
             if (
@@ -653,21 +798,36 @@ No escribas explicaciones sobre las acciones.
               )
             ) {
 
-              actions.push({
+              const exists =
+                actions.some(
+                  action =>
+                    action.target === id
+                );
 
-                type:
-                  "app",
+              if (!exists) {
 
-                target:
-                  id
-              });
+                actions.push({
+
+                  type:
+                    "app",
+
+                  target:
+                    id
+                });
+              }
             }
           }
 
 
+          // -----------------------------------------------
+          // JUEGOS
+          // -----------------------------------------------
+
           for (
             const [id, aliases]
-            of Object.entries(games)
+            of Object.entries(
+              games
+            )
           ) {
 
             if (
@@ -677,67 +837,44 @@ No escribas explicaciones sobre las acciones.
               )
             ) {
 
-              actions.push({
+              const exists =
+                actions.some(
+                  action =>
+                    action.target === id
+                );
 
-                type:
-                  "game",
+              if (!exists) {
 
-                target:
-                  id
-              });
+                actions.push({
+
+                  type:
+                    "game",
+
+                  target:
+                    id
+                });
+              }
             }
+          }
+
+
+          if (
+            actions.length > 0 &&
+            !reply
+          ) {
+
+            const names =
+              actions.map(
+                action =>
+                  action.target
+              );
+
+
+            reply =
+              `Abriendo ${names.join(", ")}.`;
           }
         }
-// =================================================
-// CONTROL DEL ORDENADOR
-// =================================================
 
-if (
-  text.includes("apaga el ordenador") ||
-  text.includes("apaga el pc") ||
-  text.includes("apagar el ordenador") ||
-  text.includes("apagar el pc")
-) {
-
-  actions.push({
-    type: "shutdown_pc"
-  });
-
-  reply =
-    "Apagando el ordenador en 30 segundos.";
-}
-
-
-if (
-  text.includes("cancela el apagado") ||
-  text.includes("cancelar el apagado") ||
-  text.includes("cancela el apagado del ordenador")
-) {
-
-  actions.push({
-    type: "cancel_shutdown"
-  });
-
-  reply =
-    "He cancelado el apagado.";
-}
-
-
-if (
-  text === "cierra bruce" ||
-  text === "cerrar bruce" ||
-  text.includes("detén bruce") ||
-  text.includes("detener bruce") ||
-  text.includes("apaga bruce")
-) {
-
-  actions.push({
-    type: "stop_agent"
-  });
-
-  reply =
-    "Cerrando Bruce.";
-}
 
         // =================================================
         // SI HAY ACCIONES
@@ -747,21 +884,35 @@ if (
           actions.length > 0
         ) {
 
-          const names =
-            actions.map(
-              action =>
-                action.target
-            );
-
-
-          const verb =
+          // Si es una orden de cerrar y todavía
+          // no tenemos respuesta
+          if (
+            !reply &&
             wantsClose
-              ? "Cerrando"
-              : "Abriendo";
+          ) {
+
+            reply =
+              "Cerrando lo solicitado.";
+          }
 
 
-          const reply =
-            `${verb} ${names.join(", ")}.`;
+          // Si es una orden de abrir
+          if (
+            !reply &&
+            wantsOpen
+          ) {
+
+            reply =
+              "Abriendo lo solicitado.";
+          }
+
+
+          // Si sigue sin respuesta
+          if (!reply) {
+
+            reply =
+              "Ejecutando la orden.";
+          }
 
 
           await env.DB
@@ -802,7 +953,7 @@ if (
 
 
         // =================================================
-        // IA
+        // IA PARA CONVERSACIÓN NORMAL
         // =================================================
 
         const result =
