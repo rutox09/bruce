@@ -66,11 +66,25 @@ export default {
 
         let answer = "";
 
-        if (result && typeof result === "object" && result.response) {
-          answer = result.response;
-        } else {
-          answer = String(result);
-        }
+if (typeof result === "string") {
+  answer = result;
+} else if (result && result.response) {
+  answer = result.response;
+} else if (result && result.output_text) {
+  answer = result.output_text;
+} else if (result && result.choices && result.choices[0]) {
+  const choice = result.choices[0];
+
+  if (choice.message && choice.message.content) {
+    answer = choice.message.content;
+  } else if (choice.text) {
+    answer = choice.text;
+  }
+}
+
+if (!answer) {
+  answer = "No he podido obtener una respuesta de la IA.";
+}
 
         await env.DB
           .prepare(
