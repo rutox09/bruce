@@ -23,8 +23,7 @@ const userMessage = body.message;
     const messages = [
       {
         role: "system",
-        content:
-          "Eres Bruce, un asistente personal inteligente. Responde siempre en español. Tu personalidad es elegante, inteligente, tranquila y directa. Sé útil y práctico. No inventes información. Si no sabes algo, dilo claramente."
+        content: "Eres Bruce, un asistente personal inteligente. Responde siempre en español. Tu personalidad es elegante, inteligente, tranquila y directa. Sé útil y práctico. No inventes información. Si no sabes algo, dilo claramente."
       },
       {
         role: "user",
@@ -35,7 +34,7 @@ const userMessage = body.message;
     const result = await env.AI.run(
       "@cf/openai/gpt-oss-20b",
       {
-        messages
+        messages: messages
       }
     );
 
@@ -50,6 +49,7 @@ const userMessage = body.message;
         }
       }
     );
+
   } catch (error) {
     return new Response(
       JSON.stringify({
@@ -71,4 +71,3 @@ return env.ASSETS.fetch(request);
 
 }
 };
-
