@@ -5,7 +5,7 @@ sessionId = crypto.randomUUID();
 localStorage.setItem("bruce_session_id", sessionId);
 }
 
-const WORKER_URL = "https://brucewayne.aleixruto.workers.dev/";
+const WORKER_URL = "https://brucewayne.aleixruto.workers.dev/api/chat";
 
 const chat = document.getElementById("chat");
 const inputArea = document.getElementById("inputArea");
