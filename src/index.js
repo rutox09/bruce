@@ -688,7 +688,56 @@ No escribas explicaciones sobre las acciones.
             }
           }
         }
+// =================================================
+// CONTROL DEL ORDENADOR
+// =================================================
 
+if (
+  text.includes("apaga el ordenador") ||
+  text.includes("apaga el pc") ||
+  text.includes("apagar el ordenador") ||
+  text.includes("apagar el pc")
+) {
+
+  actions.push({
+    type: "shutdown_pc"
+  });
+
+  reply =
+    "Apagando el ordenador en 30 segundos.";
+}
+
+
+if (
+  text.includes("cancela el apagado") ||
+  text.includes("cancelar el apagado") ||
+  text.includes("cancela el apagado del ordenador")
+) {
+
+  actions.push({
+    type: "cancel_shutdown"
+  });
+
+  reply =
+    "He cancelado el apagado.";
+}
+
+
+if (
+  text === "cierra bruce" ||
+  text === "cerrar bruce" ||
+  text.includes("detén bruce") ||
+  text.includes("detener bruce") ||
+  text.includes("apaga bruce")
+) {
+
+  actions.push({
+    type: "stop_agent"
+  });
+
+  reply =
+    "Cerrando Bruce.";
+}
 
         // =================================================
         // SI HAY ACCIONES
