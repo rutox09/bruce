@@ -1,55 +1,157 @@
 <!DOCTYPE html>
-
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bruce</title>
-  <link rel="stylesheet" href="style.css">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Bruce · Personal Assistant</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
 </head>
+
 
 <body>
 
+  <!-- Fondo decorativo -->
+
+  <div class="background">
+    <div class="city"></div>
+    <div class="moon"></div>
+  </div>
+
+
   <main class="app">
 
+    <!-- ================================= -->
+    <!-- CABECERA -->
+    <!-- ================================= -->
 
-<header>
-  <div class="logo">B</div>
+    <header class="topbar">
 
-  <div>
-    <h1>Bruce</h1>
-    <p>Asistente personal · Online</p>
-  </div>
-</header>
+      <div class="brand">
 
-<section id="chat">
+        <div class="bat-logo">
+          <span>🦇</span>
+        </div>
 
-  <div class="message bruce">
-    Buenas. Soy Bruce. ¿En qué puedo ayudarte?
-  </div>
+        <div class="brand-text">
 
-</section>
+          <h1>BRUCE</h1>
 
-<form id="inputArea">
+          <p>
+            PERSONAL ASSISTANT
+          </p>
 
-  <input
-    id="messageInput"
-    type="text"
-    placeholder="Escribe un mensaje..."
-    autocomplete="off"
-  >
+        </div>
 
-  <button type="submit">
-    Enviar
-  </button>
+      </div>
 
-</form>
 
+      <div class="status">
+
+        <span class="status-dot"></span>
+
+        <span>
+          ONLINE
+        </span>
+
+      </div>
+
+    </header>
+
+
+    <!-- ================================= -->
+    <!-- SEPARADOR -->
+    <!-- ================================= -->
+
+    <div class="separator"></div>
+
+
+    <!-- ================================= -->
+    <!-- CHAT -->
+    <!-- ================================= -->
+
+    <section id="chat">
+
+      <div class="message bruce">
+
+        <div class="message-name">
+          BRUCE
+        </div>
+
+        <div class="message-content">
+          Buenas. Soy Bruce. ¿En qué puedo ayudarte?
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================================= -->
+    <!-- ENTRADA -->
+    <!-- ================================= -->
+
+    <form id="inputArea">
+
+      <button
+        type="button"
+        id="micButton"
+        class="mic-button"
+        title="Hablar con Bruce"
+        aria-label="Hablar con Bruce"
+      >
+        🎙️
+      </button>
+
+
+      <input
+        id="messageInput"
+        type="text"
+        placeholder="Escribe a Bruce..."
+        autocomplete="off"
+      >
+
+
+      <button
+        type="submit"
+        class="send-button"
+      >
+        ENVIAR
+      </button>
+
+    </form>
+
+
+    <!-- ================================= -->
+    <!-- PIE -->
+    <!-- ================================= -->
+
+    <footer>
+
+      <span>
+        BRUCE WAYNE PERSONAL SYSTEM
+      </span>
+
+      <span>
+        v1.0
+      </span>
+
+    </footer>
 
   </main>
+
 
   <script src="script.js"></script>
 
 </body>
-</html>
 
+</html>
