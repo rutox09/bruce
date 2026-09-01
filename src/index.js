@@ -2,12 +2,17 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // =========================
+    // =====================================================
     // HISTORIAL
-    // =========================
-    if (request.method === "GET" && url.pathname === "/api/history") {
+    // =====================================================
+
+    if (
+      request.method === "GET" &&
+      url.pathname === "/api/history"
+    ) {
       try {
-        const sessionId = url.searchParams.get("sessionId");
+        const sessionId =
+          url.searchParams.get("sessionId");
 
         if (!sessionId) {
           return new Response(
@@ -43,6 +48,7 @@ export default {
             }
           }
         );
+
       } catch (error) {
         return new Response(
           JSON.stringify({
@@ -60,15 +66,22 @@ export default {
       }
     }
 
-    // =========================
+    // =====================================================
     // CHAT
-    // =========================
-    if (request.method === "POST" && url.pathname === "/api/chat") {
+    // =====================================================
+
+    if (
+      request.method === "POST" &&
+      url.pathname === "/api/chat"
+    ) {
       try {
         const body = await request.json();
 
-        const userMessage = body.message;
-        const sessionId = body.sessionId;
+        const userMessage =
+          String(body.message || "").trim();
+
+        const sessionId =
+          body.sessionId;
 
         if (!userMessage || !sessionId) {
           return new Response(
@@ -85,9 +98,10 @@ export default {
           );
         }
 
-        // =========================
+        // =================================================
         // MEMORIA
-        // =========================
+        // =================================================
+
         const previous = await env.DB
           .prepare(
             "SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC LIMIT 30"
@@ -102,268 +116,88 @@ export default {
 Eres Bruce, un asistente personal inteligente.
 
 Responde siempre en español.
-
-Tu personalidad:
-- elegante
-- inteligente
-- tranquila
-- directa
-- práctica
+Tu personalidad es elegante, inteligente, tranquila y directa.
 
 No inventes información.
 
-Puedes controlar el ordenador mediante estas acciones.
+Puedes conversar normalmente y también controlar el ordenador.
 
 IMPORTANTE:
-Cuando el usuario quiera controlar el ordenador, responde ÚNICAMENTE con JSON válido.
+Si el usuario pide una acción del ordenador, responde SOLO con JSON válido.
 
-FORMATO:
+Formato:
 
 {
-  "reply": "mensaje para el usuario",
+  "reply": "mensaje",
   "action": {
     "type": "TIPO",
     "target": "OBJETIVO"
   }
 }
 
-Si no hay ninguna acción:
+Si no hay acción:
 
 {
-  "reply": "respuesta normal",
+  "reply": "respuesta",
   "action": null
 }
 
+No uses Markdown.
+No uses bloques de código.
+No escribas nada fuera del JSON.
 
-====================================================
-PÁGINAS WEB
-====================================================
+Acciones:
 
-YouTube:
-{
-  "type": "website",
-  "target": "youtube"
-}
+Páginas web:
+type = website
 
-Twitch:
-{
-  "type": "website",
-  "target": "twitch"
-}
+targets:
+youtube
+twitch
+spotify
+discord
+tiktok
+google
+netflix
 
-Spotify:
-{
-  "type": "website",
-  "target": "spotify"
-}
+Cerrar páginas:
+type = close_website
 
-Discord:
-{
-  "type": "website",
-  "target": "discord"
-}
+targets:
+youtube
+twitch
+spotify
+discord
+tiktok
+google
+netflix
 
-TikTok:
-{
-  "type": "website",
-  "target": "tiktok"
-}
+Aplicaciones:
+type = app
 
-Google:
-{
-  "type": "website",
-  "target": "google"
-}
+targets:
+chrome
+edge
+steam
+notepad
+calculator
 
-Netflix:
-{
-  "type": "website",
-  "target": "netflix"
-}
+Juegos:
+type = game
 
+targets:
+rocket_league
 
-====================================================
-PROGRAMAS
-====================================================
+Cerrar aplicaciones y juegos:
+type = close
 
-Chrome:
-{
-  "type": "app",
-  "target": "chrome"
-}
-
-Edge:
-{
-  "type": "app",
-  "target": "edge"
-}
-
-Steam:
-{
-  "type": "app",
-  "target": "steam"
-}
-
-Bloc de notas:
-{
-  "type": "app",
-  "target": "notepad"
-}
-
-Calculadora:
-{
-  "type": "app",
-  "target": "calculator"
-}
-
-
-====================================================
-JUEGOS
-====================================================
-
-Rocket League:
-{
-  "type": "game",
-  "target": "rocket_league"
-}
-
-
-====================================================
-CERRAR
-====================================================
-
-Chrome:
-{
-  "type": "close",
-  "target": "chrome"
-}
-
-Steam:
-{
-  "type": "close",
-  "target": "steam"
-}
-
-Rocket League:
-{
-  "type": "close",
-  "target": "rocket_league"
-}
-
-Edge:
-{
-  "type": "close",
-  "target": "edge"
-}
-
-Bloc de notas:
-{
-  "type": "close",
-  "target": "notepad"
-}
-
-
-====================================================
-EJEMPLOS
-====================================================
-
-Usuario:
-"abre TikTok"
-
-Respuesta:
-{
-  "reply": "Abriendo TikTok.",
-  "action": {
-    "type": "website",
-    "target": "tiktok"
-  }
-}
-
-Usuario:
-"ponme Twitch"
-
-Respuesta:
-{
-  "reply": "Abriendo Twitch.",
-  "action": {
-    "type": "website",
-    "target": "twitch"
-  }
-}
-
-Usuario:
-"abre Spotify"
-
-Respuesta:
-{
-  "reply": "Abriendo Spotify.",
-  "action": {
-    "type": "website",
-    "target": "spotify"
-  }
-}
-
-Usuario:
-"abre Discord"
-
-Respuesta:
-{
-  "reply": "Abriendo Discord.",
-  "action": {
-    "type": "website",
-    "target": "discord"
-  }
-}
-
-Usuario:
-"abre Steam"
-
-Respuesta:
-{
-  "reply": "Abriendo Steam.",
-  "action": {
-    "type": "app",
-    "target": "steam"
-  }
-}
-
-Usuario:
-"inicia Rocket League"
-
-Respuesta:
-{
-  "reply": "Iniciando Rocket League.",
-  "action": {
-    "type": "game",
-    "target": "rocket_league"
-  }
-}
-
-Usuario:
-"cierra Steam"
-
-Respuesta:
-{
-  "reply": "Cerrando Steam.",
-  "action": {
-    "type": "close",
-    "target": "steam"
-  }
-}
-
-Usuario:
-"cierra Rocket League"
-
-Respuesta:
-{
-  "reply": "Cerrando Rocket League.",
-  "action": {
-    "type": "close",
-    "target": "rocket_league"
-  }
-}
-
-No añadas ningún texto fuera del JSON.
+targets:
+chrome
+edge
+steam
+notepad
+calculator
+rocket_league
 `
           }
         ];
@@ -380,17 +214,321 @@ No añadas ningún texto fuera del JSON.
           content: userMessage
         });
 
-        // Guardar mensaje del usuario
+        // =================================================
+        // GUARDAR USUARIO
+        // =================================================
+
         await env.DB
           .prepare(
             "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
           )
-          .bind(sessionId, "user", userMessage)
+          .bind(
+            sessionId,
+            "user",
+            userMessage
+          )
           .run();
 
-        // =========================
-        // IA
-        // =========================
+        // =================================================
+        // DETECCIÓN DIRECTA DE ÓRDENES
+        // =================================================
+
+        const text =
+          userMessage
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+
+        const websites = {
+          youtube: ["youtube", "you tube"],
+          twitch: ["twitch"],
+          spotify: ["spotify"],
+          discord: ["discord"],
+          tiktok: ["tiktok", "tik tok"],
+          google: ["google"],
+          netflix: ["netflix"]
+        };
+
+        const apps = {
+          chrome: ["chrome", "google chrome"],
+          edge: ["edge", "microsoft edge"],
+          steam: ["steam"],
+          notepad: [
+            "bloc de notas",
+            "notepad"
+          ],
+          calculator: [
+            "calculadora",
+            "calculator"
+          ]
+        };
+
+        const games = {
+          rocket_league: [
+            "rocket league",
+            "rocket"
+          ]
+        };
+
+        let action = null;
+        let reply = null;
+
+        // -------------------------------------------------
+        // CERRAR PÁGINA
+        // -------------------------------------------------
+
+        const closeWords = [
+          "cierra",
+          "cerrar",
+          "cierra la",
+          "cierra el",
+          "cerrame",
+          "cerrar la",
+          "cerrar el"
+        ];
+
+        const wantsClose =
+          closeWords.some(
+            word => text.includes(word)
+          );
+
+        if (wantsClose) {
+
+          for (const [id, aliases] of Object.entries(websites)) {
+
+            if (
+              aliases.some(
+                alias => text.includes(alias)
+              )
+            ) {
+              action = {
+                type: "close_website",
+                target: id
+              };
+
+              reply =
+                `Cerrando ${id}.`;
+
+              break;
+            }
+          }
+
+          // Cerrar aplicación/juego
+          if (!action) {
+
+            for (const [id, aliases] of Object.entries(apps)) {
+
+              if (
+                aliases.some(
+                  alias => text.includes(alias)
+                )
+              ) {
+                action = {
+                  type: "close",
+                  target: id
+                };
+
+                reply =
+                  `Cerrando ${id}.`;
+
+                break;
+              }
+            }
+          }
+
+          if (!action) {
+
+            for (const [id, aliases] of Object.entries(games)) {
+
+              if (
+                aliases.some(
+                  alias => text.includes(alias)
+                )
+              ) {
+                action = {
+                  type: "close",
+                  target: id
+                };
+
+                reply =
+                  `Cerrando Rocket League.`;
+
+                break;
+              }
+            }
+          }
+        }
+
+        // -------------------------------------------------
+        // ABRIR PÁGINA
+        // -------------------------------------------------
+
+        if (!action) {
+
+          const openWords = [
+            "abre",
+            "abrir",
+            "pon",
+            "poner",
+            "entra en",
+            "abrirme",
+            "ponme"
+          ];
+
+          const wantsOpen =
+            openWords.some(
+              word => text.includes(word)
+            );
+
+          if (wantsOpen) {
+
+            for (const [id, aliases] of Object.entries(websites)) {
+
+              if (
+                aliases.some(
+                  alias => text.includes(alias)
+                )
+              ) {
+                action = {
+                  type: "website",
+                  target: id
+                };
+
+                reply =
+                  `Abriendo ${id}.`;
+
+                break;
+              }
+            }
+          }
+        }
+
+        // -------------------------------------------------
+        // ABRIR APP
+        // -------------------------------------------------
+
+        if (!action) {
+
+          const openWords = [
+            "abre",
+            "abrir",
+            "inicia",
+            "iniciar",
+            "pon",
+            "poner",
+            "ejecuta"
+          ];
+
+          const wantsOpen =
+            openWords.some(
+              word => text.includes(word)
+            );
+
+          if (wantsOpen) {
+
+            for (const [id, aliases] of Object.entries(apps)) {
+
+              if (
+                aliases.some(
+                  alias => text.includes(alias)
+                )
+              ) {
+                action = {
+                  type: "app",
+                  target: id
+                };
+
+                reply =
+                  `Abriendo ${id}.`;
+
+                break;
+              }
+            }
+          }
+        }
+
+        // -------------------------------------------------
+        // ABRIR JUEGO
+        // -------------------------------------------------
+
+        if (!action) {
+
+          const openWords = [
+            "abre",
+            "abrir",
+            "inicia",
+            "iniciar",
+            "juega",
+            "pon"
+          ];
+
+          const wantsOpen =
+            openWords.some(
+              word => text.includes(word)
+            );
+
+          if (wantsOpen) {
+
+            for (const [id, aliases] of Object.entries(games)) {
+
+              if (
+                aliases.some(
+                  alias => text.includes(alias)
+                )
+              ) {
+                action = {
+                  type: "game",
+                  target: id
+                };
+
+                reply =
+                  "Iniciando Rocket League.";
+
+                break;
+              }
+            }
+          }
+        }
+
+        // =================================================
+        // SI ES UNA ORDEN CONOCIDA
+        // NO LLAMAMOS A LA IA
+        // =================================================
+
+        if (action) {
+
+          await env.DB
+            .prepare(
+              "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
+            )
+            .bind(
+              sessionId,
+              "assistant",
+              reply
+            )
+            .run();
+
+          return new Response(
+            JSON.stringify({
+              response: reply,
+              action: action
+            }),
+            {
+              status: 200,
+              headers: {
+                "Content-Type":
+                  "application/json",
+                "Access-Control-Allow-Origin":
+                  "*"
+              }
+            }
+          );
+        }
+
+        // =================================================
+        // IA PARA CONVERSACIÓN NORMAL
+        // =================================================
+
         const result = await env.AI.run(
           "@cf/openai/gpt-oss-20b",
           {
@@ -405,52 +543,53 @@ No añadas ningún texto fuera del JSON.
           result &&
           result.choices &&
           result.choices.length > 0 &&
-          result.choices[0].message &&
-          result.choices[0].message.content
+          result.choices[0].message
         ) {
-          answer = result.choices[0].message.content;
+          answer =
+            result.choices[0].message.content || "";
         }
 
         if (!answer) {
-          console.error(
-            "Bruce no pudo extraer el texto de la IA:",
-            JSON.stringify(result)
-          );
-
-          answer = JSON.stringify({
-            reply: "He tenido un problema procesando la respuesta.",
-            action: null
-          });
+          answer =
+            "He tenido un problema procesando la respuesta.";
         }
 
-        // =========================
-        // INTERPRETAR JSON
-        // =========================
         let parsed;
 
         try {
-          parsed = JSON.parse(answer);
-        } catch (error) {
+          parsed = JSON.parse(
+            answer
+              .replace(/^```json\s*/i, "")
+              .replace(/^```\s*/i, "")
+              .replace(/```\s*$/i, "")
+              .trim()
+          );
+        } catch {
           parsed = {
             reply: answer,
             action: null
           };
         }
 
-        const reply = parsed.reply || answer;
-        const action = parsed.action || null;
+        reply =
+          parsed.reply ||
+          answer;
 
-        // Guardar respuesta de Bruce
+        action =
+          parsed.action ||
+          null;
+
         await env.DB
           .prepare(
             "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
           )
-          .bind(sessionId, "assistant", reply)
+          .bind(
+            sessionId,
+            "assistant",
+            reply
+          )
           .run();
 
-        // =========================
-        // RESPUESTA
-        // =========================
         return new Response(
           JSON.stringify({
             response: reply,
@@ -459,13 +598,21 @@ No añadas ningún texto fuera del JSON.
           {
             status: 200,
             headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*"
+              "Content-Type":
+                "application/json",
+              "Access-Control-Allow-Origin":
+                "*"
             }
           }
         );
 
       } catch (error) {
+
+        console.error(
+          "ERROR BRUCE:",
+          error
+        );
+
         return new Response(
           JSON.stringify({
             error: "Error en Bruce",
@@ -474,23 +621,32 @@ No añadas ningún texto fuera del JSON.
           {
             status: 500,
             headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*"
+              "Content-Type":
+                "application/json",
+              "Access-Control-Allow-Origin":
+                "*"
             }
           }
         );
       }
-        }
+    }
+
+    // =====================================================
+    // ASSETS
+    // =====================================================
 
     if (env.ASSETS) {
       return env.ASSETS.fetch(request);
     }
 
-    return new Response("Bruce está funcionando.", {
-      status: 200,
-      headers: {
-        "Content-Type": "text/plain"
+    return new Response(
+      "Bruce está funcionando.",
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain"
+        }
       }
-    });
+    );
   }
 };
