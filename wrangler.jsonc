@@ -1,15 +1,18 @@
 {
-"name": "brucewayne",
-"main": "src/index.js",
-"compatibility_date": "2026-09-01",
-"assets": {
-"directory": "./"
-},
-"d1_databases": [
-{
-"binding": "DB",
-"database_name": "bruce-memory",
-"database_id": "d5903e9c-bd15-48be-9544-a55fbed7d9d6"
-}
-]
+  "name": "brucewayne",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bruce-memory",
+      "database_id": "d5903e9c-bd15-48be-9544-a55fbed7d9d6"
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  }
 }
