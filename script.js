@@ -1,3 +1,10 @@
+let sessionId = localStorage.getItem("bruce_session_id");
+
+if (!sessionId) {
+sessionId = crypto.randomUUID();
+localStorage.setItem("bruce_session_id", sessionId);
+}
+
 const WORKER_URL = "https://brucewayne.aleixruto.workers.dev/";
 
 const chat = document.getElementById("chat");
@@ -5,18 +12,18 @@ const inputArea = document.getElementById("inputArea");
 const input = document.getElementById("messageInput");
 
 function addMessage(text, type) {
+
 const message = document.createElement("div");
 
 message.className = "message " + type;
 message.textContent = text;
 
 chat.appendChild(message);
+
 chat.scrollTop = chat.scrollHeight;
 }
 
-inputArea.addEventListener("submit", async function(event) {
-
-event.preventDefault();
+async function sendMessage() {
 
 const text = input.value.trim();
 
@@ -30,8 +37,9 @@ input.value = "";
 
 try {
 
-```
+
 const response = await fetch(WORKER_URL, {
+
   method: "POST",
 
   headers: {
@@ -39,8 +47,10 @@ const response = await fetch(WORKER_URL, {
   },
 
   body: JSON.stringify({
-    message: text
+    message: text,
+    sessionId: sessionId
   })
+
 });
 
 const data = await response.json();
@@ -55,30 +65,30 @@ if (data.error) {
   return;
 }
 
-let answer = data.response;
+addMessage(
+  data.response,
+  "bruce"
+);
 
-if (
-  typeof answer === "object" &&
-  answer.response
-) {
-  answer = answer.response;
-}
-
-addMessage(answer, "bruce");
-```
 
 } catch (error) {
 
-```
+
 addMessage(
   "No puedo conectar con Bruce.",
   "bruce"
 );
 
 console.error(error);
-```
+
 
 }
+}
 
-});
-
+inputArea.addEventListener(
+"submit",
+function(event) {
+event.preventDefault();
+sendMessage();
+}
+);
