@@ -34,6 +34,9 @@ const inputArea =
 const input =
     document.getElementById("messageInput");
 
+const micButton =
+    document.getElementById("micButton");
+
 
 // =====================================================
 // MOSTRAR MENSAJE
@@ -60,6 +63,96 @@ function addMessage(text, type) {
 
 
 // =====================================================
+// BRUCE HABLA
+// =====================================================
+
+function speak(text) {
+
+    if (
+        !("speechSynthesis" in window)
+    ) {
+
+        console.warn(
+            "Este navegador no soporta síntesis de voz."
+        );
+
+        return;
+    }
+
+
+    // Parar una respuesta anterior
+    speechSynthesis.cancel();
+
+
+    const utterance =
+        new SpeechSynthesisUtterance(
+            text
+        );
+
+
+    utterance.lang =
+        "es-ES";
+
+
+    utterance.rate =
+        1;
+
+
+    utterance.pitch =
+        0.9;
+
+
+    utterance.volume =
+        1;
+
+
+    // Buscar una voz española
+    const voices =
+        speechSynthesis.getVoices();
+
+
+    const spanishVoice =
+        voices.find(
+            voice =>
+                voice.lang &&
+                voice.lang
+                    .toLowerCase()
+                    .startsWith("es")
+        );
+
+
+    if (spanishVoice) {
+
+        utterance.voice =
+            spanishVoice;
+    }
+
+
+    utterance.onstart =
+        function() {
+
+            document.body.classList.add(
+                "bruce-speaking"
+            );
+        };
+
+
+    utterance.onend =
+        function() {
+
+            document.body.classList.remove(
+                "bruce-speaking"
+            );
+        };
+
+
+    speechSynthesis.speak(
+        utterance
+    );
+}
+
+
+// =====================================================
 // EJECUTAR UNA ACCIÓN
 // =====================================================
 
@@ -69,10 +162,12 @@ async function executeAction(action) {
         return;
     }
 
+
     console.log(
         "Ejecutando acción:",
         action
     );
+
 
     try {
 
@@ -129,8 +224,7 @@ async function executeAction(action) {
 
 async function executeActions(data) {
 
-    // Nuevo sistema: varias acciones
-
+    // Sistema nuevo
     if (
         Array.isArray(
             data.actions
@@ -142,6 +236,7 @@ async function executeActions(data) {
             data.actions
         );
 
+
         for (
             const action
             of data.actions
@@ -152,12 +247,12 @@ async function executeActions(data) {
             );
         }
 
+
         return;
     }
 
 
-    // Sistema antiguo: una acción
-
+    // Compatibilidad con el sistema antiguo
     if (data.action) {
 
         await executeAction(
@@ -171,10 +266,13 @@ async function executeActions(data) {
 // ENVIAR MENSAJE
 // =====================================================
 
-async function sendMessage() {
+async function sendMessage(text = null) {
 
-    const text =
-        input.value.trim();
+    if (text === null) {
+
+        text =
+            input.value.trim();
+    }
 
 
     if (!text) {
@@ -271,13 +369,26 @@ async function sendMessage() {
 
 
         // =================================================
-        // RESPUESTA DE BRUCE
+        // RESPUESTA
         // =================================================
 
-        addMessage(
+        const bruceResponse =
             data.response ||
-            "He recibido tu mensaje.",
+            "He recibido tu mensaje.";
+
+
+        addMessage(
+            bruceResponse,
             "bruce"
+        );
+
+
+        // =================================================
+        // HACER QUE BRUCE HABLE
+        // =================================================
+
+        speak(
+            bruceResponse
         );
 
 
@@ -382,6 +493,159 @@ async function loadHistory() {
 
 
 // =====================================================
+// RECONOCIMIENTO DE VOZ
+// =====================================================
+
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+
+let recognition = null;
+
+
+if (SpeechRecognition) {
+
+    recognition =
+        new SpeechRecognition();
+
+
+    recognition.lang =
+        "es-ES";
+
+
+    recognition.interimResults =
+        false;
+
+
+    recognition.continuous =
+        false;
+
+
+    recognition.maxAlternatives =
+        1;
+
+
+    recognition.onstart =
+        function() {
+
+            console.log(
+                "Bruce está escuchando..."
+            );
+
+
+            if (micButton) {
+
+                micButton.textContent =
+                    "🔴";
+
+                micButton.title =
+                    "Bruce está escuchando...";
+            }
+        };
+
+
+    recognition.onresult =
+        function(event) {
+
+            const transcript =
+                event
+                    .results[0][0]
+                    .transcript
+                    .trim();
+
+
+            console.log(
+                "Has dicho:",
+                transcript
+            );
+
+
+            input.value =
+                transcript;
+
+
+            sendMessage(
+                transcript
+            );
+        };
+
+
+    recognition.onerror =
+        function(event) {
+
+            console.error(
+                "Error de reconocimiento:",
+                event.error
+            );
+
+
+            if (micButton) {
+
+                micButton.textContent =
+                    "🎙️";
+
+                micButton.title =
+                    "Hablar con Bruce";
+            }
+        };
+
+
+    recognition.onend =
+        function() {
+
+            if (micButton) {
+
+                micButton.textContent =
+                    "🎙️";
+
+                micButton.title =
+                    "Hablar con Bruce";
+            }
+        };
+
+
+    if (micButton) {
+
+        micButton.addEventListener(
+            "click",
+            function() {
+
+                try {
+
+                    recognition.start();
+
+                } catch (error) {
+
+                    console.error(
+                        "No se pudo iniciar el micrófono:",
+                        error
+                    );
+                }
+            }
+        );
+    }
+
+
+} else {
+
+    console.warn(
+        "SpeechRecognition no está disponible."
+    );
+
+
+    if (micButton) {
+
+        micButton.disabled =
+            true;
+
+        micButton.title =
+            "Tu navegador no soporta reconocimiento de voz";
+    }
+}
+
+
+// =====================================================
 // FORMULARIO
 // =====================================================
 
@@ -397,7 +661,28 @@ inputArea.addEventListener(
 
 
 // =====================================================
-// INICIO
+// VOCES
+// =====================================================
+
+if (
+    "speechSynthesis" in window
+) {
+
+    speechSynthesis.onvoiceschanged =
+        function() {
+
+            console.log(
+                "Voces disponibles:",
+                speechSynthesis
+                    .getVoices()
+                    .length
+            );
+        };
+}
+
+
+// =====================================================
+// HISTORIAL
 // =====================================================
 
 loadHistory();
