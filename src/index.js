@@ -18,7 +18,6 @@ export default {
         const sessionId =
           url.searchParams.get("sessionId");
 
-
         if (!sessionId) {
 
           return new Response(
@@ -28,10 +27,8 @@ export default {
             {
               status: 400,
               headers: {
-                "Content-Type":
-                  "application/json",
-                "Access-Control-Allow-Origin":
-                  "*"
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
               }
             }
           );
@@ -49,16 +46,13 @@ export default {
 
         return new Response(
           JSON.stringify({
-            messages:
-              result.results
+            messages: result.results
           }),
           {
             status: 200,
             headers: {
-              "Content-Type":
-                "application/json",
-              "Access-Control-Allow-Origin":
-                "*"
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*"
             }
           }
         );
@@ -101,16 +95,26 @@ export default {
         const body =
           await request.json();
 
+
         const text =
-          String(body.text || "").trim();
+          String(
+            body.text || ""
+          ).trim();
 
 
         if (!text) {
 
           return new Response(
-            "Falta el texto",
+            JSON.stringify({
+              error:
+                "Falta el texto"
+            }),
             {
-              status: 400
+              status: 400,
+              headers: {
+                "Content-Type":
+                  "application/json"
+              }
             }
           );
         }
@@ -168,7 +172,9 @@ export default {
 
               body: JSON.stringify({
 
-                text: text,
+                text:
+
+                  text,
 
                 model_id:
                   "eleven_multilingual_v2",
@@ -197,23 +203,30 @@ export default {
           const errorText =
             await elevenResponse.text();
 
+
           console.error(
             "ElevenLabs error:",
             elevenResponse.status,
             errorText
           );
 
+
           return new Response(
             JSON.stringify({
+
               error:
                 "ElevenLabs devolvió un error",
+
               status:
                 elevenResponse.status,
+
               details:
                 errorText
+
             }),
             {
               status: 502,
+
               headers: {
                 "Content-Type":
                   "application/json"
@@ -233,6 +246,7 @@ export default {
             status: 200,
 
             headers: {
+
               "Content-Type":
                 "audio/mpeg",
 
@@ -253,15 +267,20 @@ export default {
           error
         );
 
+
         return new Response(
           JSON.stringify({
+
             error:
               "No se pudo generar la voz",
+
             details:
               String(error)
+
           }),
           {
             status: 500,
+
             headers: {
               "Content-Type":
                 "application/json"
@@ -304,14 +323,18 @@ export default {
 
           return new Response(
             JSON.stringify({
+
               error:
                 "Falta el mensaje o la sesión"
+
             }),
             {
               status: 400,
+
               headers: {
                 "Content-Type":
                   "application/json",
+
                 "Access-Control-Allow-Origin":
                   "*"
               }
@@ -346,18 +369,15 @@ Eres Bruce, un asistente personal inteligente.
 
 Responde siempre en español.
 
-Tu personalidad es:
-- elegante
-- inteligente
-- tranquila
-- directa
-- práctica
+Tu personalidad es elegante, inteligente, tranquila, directa y práctica.
 
-No inventes información.
+Puedes conversar normalmente.
 
-Puedes controlar el ordenador.
+También puedes controlar el ordenador.
 
-Las páginas web disponibles son:
+Funciones disponibles:
+
+PÁGINAS WEB:
 - YouTube
 - Twitch
 - Spotify
@@ -366,7 +386,7 @@ Las páginas web disponibles son:
 - Google
 - Netflix
 
-Las aplicaciones disponibles son:
+APLICACIONES:
 - Chrome
 - Edge
 - Steam
@@ -374,18 +394,19 @@ Las aplicaciones disponibles son:
 - Bloc de notas
 - Calculadora
 
-El juego disponible es:
+JUEGOS:
 - Rocket League
 
-También puedes:
-- apagar el ordenador
-- cancelar un apagado
-- cerrar Bruce Agent
+ACCIONES DEL SISTEMA:
+- apagar ordenador
+- cancelar apagado
+- dormir Bruce
+- despertar Bruce
 
-Cuando el usuario haga una petición de control del ordenador,
-puedes ejecutar una acción.
+La aplicación puede interpretar directamente las órdenes sencillas de control del ordenador.
 `
           }
+
         ];
 
 
@@ -395,6 +416,7 @@ puedes ejecutar una acción.
         ) {
 
           messages.push({
+
             role:
               msg.role,
 
@@ -405,6 +427,7 @@ puedes ejecutar una acción.
 
 
         messages.push({
+
           role:
             "user",
 
@@ -414,7 +437,7 @@ puedes ejecutar una acción.
 
 
         // =================================================
-        // GUARDAR MENSAJE
+        // GUARDAR MENSAJE DEL USUARIO
         // =================================================
 
         await env.DB
@@ -444,7 +467,7 @@ puedes ejecutar una acción.
 
 
         // =================================================
-        // ELEMENTOS DISPONIBLES
+        // CONFIGURACIÓN
         // =================================================
 
         const websites = {
@@ -455,7 +478,8 @@ puedes ejecutar una acción.
           ],
 
           twitch: [
-            "twitch"
+            "twitch",
+            "twich"
           ],
 
           spotify: [
@@ -523,31 +547,55 @@ puedes ejecutar una acción.
         };
 
 
-        // =================================================
-        // ACCIONES
-        // =================================================
-
         const actions = [];
+
 
         let reply = "";
 
 
         // =================================================
-        // DETECTAR INTENCIÓN
+        // INTENCIONES
         // =================================================
 
         const wantsClose =
-          /\b(cierra|cerrar|cerrame|deten|detener|apaga|apagar)\b/
-            .test(text);
+          /\b(
+            cierra|
+            cerrar|
+            cerrame|
+            cierra la|
+            cierra el|
+            cerrar la|
+            cerrar el|
+            apaga|
+            apagar|
+            detén|
+            deten|
+            detener|
+            duerme|
+            dormir
+          )\b/x.test(text);
 
 
         const wantsOpen =
-          /\b(abre|abrir|abrirme|pon|poner|ponme|inicia|iniciar|ejecuta|juega)\b/
-            .test(text);
+          /\b(
+            abre|
+            abrir|
+            abrime|
+            abrirme|
+            pon|
+            poner|
+            ponme|
+            inicia|
+            iniciar|
+            ejecuta|
+            ejecutar|
+            juega|
+            jugar
+          )\b/x.test(text);
 
 
         // =================================================
-        // APAGAR ORDENADOR
+        // APAGAR PC
         // =================================================
 
         if (
@@ -566,9 +614,11 @@ puedes ejecutar una acción.
         ) {
 
           actions.push({
+
             type:
               "shutdown_pc"
           });
+
 
           reply =
             "Apagando el ordenador en 30 segundos.";
@@ -592,9 +642,11 @@ puedes ejecutar una acción.
         ) {
 
           actions.push({
+
             type:
               "cancel_shutdown"
           });
+
 
           reply =
             "He cancelado el apagado.";
@@ -602,34 +654,59 @@ puedes ejecutar una acción.
 
 
         // =================================================
-        // CERRAR BRUCE
+        // DORMIR BRUCE
         // =================================================
 
         else if (
-          text === "cierra bruce" ||
-          text === "cerrar bruce" ||
-          text.includes("deten bruce") ||
-          text.includes("detener bruce") ||
+          text === "duerme bruce" ||
+          text === "dormir bruce" ||
+          text === "duerme" ||
+          text.includes("pon a bruce a dormir") ||
+          text.includes("pon bruce a dormir") ||
           text.includes("apaga bruce")
         ) {
 
           actions.push({
+
             type:
               "stop_agent"
           });
 
+
           reply =
-            "Cerrando Bruce.";
+            "Entrando en modo reposo.";
         }
 
 
         // =================================================
-        // CERRAR WEBS
+        // DESPERTAR BRUCE
         // =================================================
 
         else if (
-          wantsClose
+          text === "despierta bruce" ||
+          text === "despertar bruce" ||
+          text === "enciende bruce" ||
+          text === "encender bruce" ||
+          text === "despierta"
         ) {
+
+          actions.push({
+
+            type:
+              "wake_agent"
+          });
+
+
+          reply =
+            "Bruce está activo de nuevo.";
+        }
+
+
+        // =================================================
+        // CERRAR PÁGINAS
+        // =================================================
+
+        else if (wantsClose) {
 
           for (
             const [id, aliases]
@@ -722,13 +799,26 @@ puedes ejecutar una acción.
           ) {
 
             const names =
-              actions.map(
-                action =>
-                  action.target
-              );
+              actions
+                .map(
+                  action =>
+                    action.target
+                )
+                .filter(Boolean);
 
-            reply =
-              `Cerrando ${names.join(", ")}.`;
+
+            if (
+              names.length === 1
+            ) {
+
+              reply =
+                `Cerrando ${names[0]}.`;
+
+            } else {
+
+              reply =
+                `Cerrando ${names.join(", ")}.`;
+            }
           }
         }
 
@@ -738,12 +828,15 @@ puedes ejecutar una acción.
         // =================================================
 
         if (
-          wantsOpen
+          wantsOpen &&
+          !text.includes(
+            "apaga"
+          )
         ) {
 
-          // -----------------------------------------------
-          // WEBS
-          // -----------------------------------------------
+          // -------------------------------------------------
+          // PÁGINAS
+          // -------------------------------------------------
 
           for (
             const [id, aliases]
@@ -765,6 +858,7 @@ puedes ejecutar una acción.
                     action.target === id
                 );
 
+
               if (!exists) {
 
                 actions.push({
@@ -780,9 +874,9 @@ puedes ejecutar una acción.
           }
 
 
-          // -----------------------------------------------
+          // -------------------------------------------------
           // APPS
-          // -----------------------------------------------
+          // -------------------------------------------------
 
           for (
             const [id, aliases]
@@ -804,6 +898,7 @@ puedes ejecutar una acción.
                     action.target === id
                 );
 
+
               if (!exists) {
 
                 actions.push({
@@ -819,9 +914,9 @@ puedes ejecutar una acción.
           }
 
 
-          // -----------------------------------------------
+          // -------------------------------------------------
           // JUEGOS
-          // -----------------------------------------------
+          // -------------------------------------------------
 
           for (
             const [id, aliases]
@@ -842,6 +937,7 @@ puedes ejecutar una acción.
                   action =>
                     action.target === id
                 );
+
 
               if (!exists) {
 
@@ -884,30 +980,6 @@ puedes ejecutar una acción.
           actions.length > 0
         ) {
 
-          // Si es una orden de cerrar y todavía
-          // no tenemos respuesta
-          if (
-            !reply &&
-            wantsClose
-          ) {
-
-            reply =
-              "Cerrando lo solicitado.";
-          }
-
-
-          // Si es una orden de abrir
-          if (
-            !reply &&
-            wantsOpen
-          ) {
-
-            reply =
-              "Abriendo lo solicitado.";
-          }
-
-
-          // Si sigue sin respuesta
           if (!reply) {
 
             reply =
@@ -960,6 +1032,7 @@ puedes ejecutar una acción.
           await env.AI.run(
             "@cf/openai/gpt-oss-20b",
             {
+
               messages:
                 messages,
 
@@ -1081,6 +1154,7 @@ puedes ejecutar una acción.
       "Bruce está funcionando.",
       {
         status: 200,
+
         headers: {
           "Content-Type":
             "text/plain"
