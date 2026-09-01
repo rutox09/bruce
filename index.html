@@ -4,72 +4,45 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Bruce — Secure Channel</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  >
+  <title>Bruce</title>
 
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <div class="noise"></div>
-
-  <div class="city">
-    <div class="building b1"></div>
-    <div class="building b2"></div>
-    <div class="building b3"></div>
-    <div class="building b4"></div>
-    <div class="building b5"></div>
-    <div class="building b6"></div>
-    <div class="building b7"></div>
+  <div class="background">
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    <div class="grid"></div>
   </div>
 
-  <div class="fog fog-one"></div>
-  <div class="fog fog-two"></div>
+  <main class="bruce-app">
 
-  <main class="interface">
+    <!-- HEADER -->
 
-    <!-- CABECERA -->
+    <header class="topbar">
 
-    <header class="header">
+      <div class="brand">
 
-      <div class="identity">
-
-        <div class="wayne-mark">
-          BW
+        <div class="logo">
+          B
         </div>
 
-        <div>
-          <div class="brand">
-            BRUCE
-          </div>
-
-          <div class="subtitle">
-            PRIVATE INTELLIGENCE SYSTEM
-          </div>
+        <div class="brand-text">
+          <h1>BRUCE</h1>
+          <span>PERSONAL AI SYSTEM</span>
         </div>
 
       </div>
 
-      <div class="connection">
+      <div class="status">
 
-        <span class="connection-dot"></span>
+        <span class="status-dot"></span>
 
         <div>
-          <span class="connection-title">
-            SECURE CHANNEL
-          </span>
-
-          <span class="connection-status">
-            ENCRYPTED
-          </span>
+          <strong>ONLINE</strong>
+          <small>Cloud System</small>
         </div>
 
       </div>
@@ -79,57 +52,89 @@
 
     <!-- CONTENIDO -->
 
-    <section class="workspace">
+    <section class="main-content">
 
-      <!-- CONVERSACIÓN -->
+      <!-- PANEL LATERAL -->
 
-      <section class="conversation">
+      <aside class="side-panel">
 
-        <div class="conversation-top">
+        <div class="system-card">
 
-          <span class="conversation-label">
-            PRIVATE COMMUNICATION
-          </span>
+          <div class="card-title">
+            SYSTEM STATUS
+          </div>
 
-          <span id="clock">
-            00:00:00
-          </span>
+          <div class="system-row">
+            <span>AI</span>
+            <strong class="online">ONLINE</strong>
+          </div>
+
+          <div class="system-row">
+            <span>MEMORY</span>
+            <strong class="online">ACTIVE</strong>
+          </div>
+
+          <div class="system-row">
+            <span>VOICE</span>
+            <strong class="online">READY</strong>
+          </div>
+
+          <div class="system-row">
+            <span>PC LINK</span>
+            <strong class="online">CONNECTED</strong>
+          </div>
 
         </div>
 
 
-        <div id="chat" class="chat">
+        <div class="system-card">
 
-          <div class="welcome">
+          <div class="card-title">
+            BRUCE
+          </div>
 
-            <div class="welcome-line"></div>
+          <div class="reactor">
 
-            <div class="welcome-text">
-              Comunicación establecida.
-            </div>
+            <div class="reactor-ring ring-1"></div>
+            <div class="reactor-ring ring-2"></div>
+            <div class="reactor-ring ring-3"></div>
 
-            <div class="welcome-sub">
-              Bruce está disponible.
+            <div class="reactor-core">
+              B
             </div>
 
           </div>
 
+          <div class="reactor-status">
+            READY
+          </div>
+
+        </div>
+
+      </aside>
+
+
+      <!-- CHAT -->
+
+      <section class="chat-container">
+
+        <div id="chat" class="chat">
 
           <div class="message bruce">
 
-            <div class="message-meta">
+            <div class="message-header">
 
-              <span class="message-author">
-                BRUCE
-              </span>
+              <div class="avatar">
+                B
+              </div>
 
-              <span class="message-time">
-                NOW
-              </span>
+              <span>BRUCE</span>
+
+              <small>NOW</small>
 
             </div>
 
-            <div class="message-text">
+            <div class="message-content">
               Buenas. Soy Bruce. ¿En qué puedo ayudarte?
             </div>
 
@@ -137,177 +142,67 @@
 
         </div>
 
-      </section>
+
+        <!-- INPUT -->
+
+        <form id="inputArea" class="input-area">
+
+          <button
+            type="button"
+            id="micButton"
+            class="icon-button"
+            title="Hablar con Bruce"
+          >
+            <span class="mic-icon">●</span>
+          </button>
 
 
-      <!-- PANEL DE BRUCE -->
+          <div class="input-wrapper">
 
-      <aside class="presence">
+            <input
+              id="messageInput"
+              type="text"
+              placeholder="Escribe una orden para Bruce..."
+              autocomplete="off"
+            >
 
-        <div class="presence-label">
-          PRESENCIA
-        </div>
-
-
-        <div class="orb-container">
-
-          <div class="orb-ring ring-a"></div>
-          <div class="orb-ring ring-b"></div>
-          <div class="orb-ring ring-c"></div>
-
-          <div class="orb">
-
-            <div class="orb-inner">
-              B
+            <div class="input-status">
+              BRUCE READY
             </div>
 
           </div>
 
-        </div>
 
+          <button
+            type="submit"
+            class="send-button"
+          >
+            <span>ENVIAR</span>
+            <span class="send-arrow">➜</span>
+          </button>
 
-        <div id="bruceState" class="bruce-state">
-          ESPERANDO
-        </div>
+        </form>
 
-        <div class="bruce-description">
-          Canal de comunicación activo
-        </div>
-
-
-        <div class="audio-visualizer" id="audioVisualizer">
-
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-
-        </div>
-
-
-        <div class="presence-info">
-
-          <div class="presence-row">
-            <span>AI CORE</span>
-            <strong>ONLINE</strong>
-          </div>
-
-          <div class="presence-row">
-            <span>MEMORY</span>
-            <strong>ACTIVE</strong>
-          </div>
-
-          <div class="presence-row">
-            <span>VOICE</span>
-            <strong>READY</strong>
-          </div>
-
-          <div class="presence-row">
-            <span>PC LINK</span>
-            <strong>CONNECTED</strong>
-          </div>
-
-        </div>
-
-      </aside>
+      </section>
 
     </section>
 
 
-    <!-- COMUNICACIÓN -->
+    <!-- FOOTER -->
 
-    <section class="communication">
+    <footer>
 
-      <button
-        type="button"
-        id="micButton"
-        class="mic-button"
-        aria-label="Hablar con Bruce"
-      >
-
-        <div class="mic-glow"></div>
-
-        <div class="mic-circle">
-
-          <span class="mic-symbol">
-            ◉
-          </span>
-
-        </div>
-
-      </button>
-
-
-      <div class="communication-status">
-
-        <span class="status-line"></span>
-
-        <span id="inputHint">
-          ESCRIBE UN MENSAJE O HABLA CON BRUCE
-        </span>
-
-        <span class="status-line"></span>
-
+      <div>
+        BRUCE AI
       </div>
 
+      <div>
+        SYSTEM SECURE
+      </div>
 
-      <form id="inputArea" class="input-area">
-
-        <div class="input-shell">
-
-          <input
-            id="messageInput"
-            type="text"
-            placeholder="Dile algo a Bruce..."
-            autocomplete="off"
-            spellcheck="false"
-          >
-
-          <span class="input-icon">
-            /
-          </span>
-
-        </div>
-
-        <button
-          type="submit"
-          class="send-button"
-        >
-          ENVIAR
-        </button>
-
-      </form>
-
-    </section>
-
-
-    <!-- PIE -->
-
-    <footer class="footer">
-
-      <span>
-        WAYNE SYSTEMS
-      </span>
-
-      <span>
-        PRIVATE ACCESS
-      </span>
-
-      <span>
-        <span class="footer-dot"></span>
-        ONLINE
-      </span>
+      <div id="clock">
+        00:00:00
+      </div>
 
     </footer>
 
@@ -318,86 +213,22 @@
 
     function updateClock() {
 
-      const clock =
-        document.getElementById("clock");
+      const clock = document.getElementById("clock");
 
       if (!clock) return;
 
       const now = new Date();
 
       clock.textContent =
-        now.toLocaleTimeString(
-          "es-ES",
-          {
-            hour12: false
-          }
-        );
+        now.toLocaleTimeString("es-ES", {
+          hour12: false
+        });
 
     }
 
     updateClock();
 
-    setInterval(
-      updateClock,
-      1000
-    );
-
-
-    /*
-      Permite cambiar visualmente
-      el estado de Bruce desde
-      script.js en el futuro.
-    */
-
-    window.setBruceState = function(state) {
-
-      const stateElement =
-        document.getElementById("bruceState");
-
-      const hint =
-        document.getElementById("inputHint");
-
-      if (!stateElement) return;
-
-      const states = {
-
-        waiting: [
-          "ESPERANDO",
-          "ESCRIBE UN MENSAJE O HABLA CON BRUCE"
-        ],
-
-        listening: [
-          "ESCUCHANDO",
-          "BRUCE TE ESTÁ ESCUCHANDO"
-        ],
-
-        thinking: [
-          "PENSANDO",
-          "PROCESANDO INFORMACIÓN"
-        ],
-
-        speaking: [
-          "HABLANDO",
-          "BRUCE ESTÁ RESPONDIENDO"
-        ]
-
-      };
-
-      const current =
-        states[state] || states.waiting;
-
-      stateElement.textContent =
-        current[0];
-
-      if (hint) {
-        hint.textContent =
-          current[1];
-      }
-
-      document.body.dataset.bruceState =
-        state;
-
-    };
+    setInterval(updateClock, 1000);
 
   </script>
 
