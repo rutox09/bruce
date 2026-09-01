@@ -53,7 +53,21 @@ const response = await fetch(WORKER_URL, {
 
 });
 
-const data = await response.json();
+const responseText = await response.text();
+
+console.log("Bruce respondió:", responseText);
+
+let data;
+
+try {
+  data = JSON.parse(responseText);
+} catch (error) {
+  addMessage(
+    "Bruce ha devuelto una respuesta inesperada: " + responseText,
+    "bruce"
+  );
+  return;
+}
 
 if (data.error) {
 
