@@ -73,15 +73,12 @@ addMessage(
 
 } catch (error) {
 
+  addMessage(
+    "Error de conexión: " + error.message,
+    "bruce"
+  );
 
-addMessage(
-  "No puedo conectar con Bruce.",
-  "bruce"
-);
-
-console.error(error);
-
-
+  console.error(error);
 }
 }
 
