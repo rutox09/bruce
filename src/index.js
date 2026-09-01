@@ -119,7 +119,7 @@ if (request.method === "POST" && url.pathname === "/api/chat") {
   }
 );
 
-console.log("RESPUESTA COMPLETA DE LA IA:", JSON.stringify(result));
+
 
    let answer = "";
 
