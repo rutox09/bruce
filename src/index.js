@@ -115,7 +115,8 @@ if (request.method === "POST" && url.pathname === "/api/chat") {
    const result = await env.AI.run(
   "@cf/openai/gpt-oss-20b",
   {
-    messages: messages
+    messages: messages,
+    max_tokens: 1024
   }
 );
 
