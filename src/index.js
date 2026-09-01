@@ -6,6 +6,10 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
+/* =========================================================
+   RESPUESTAS HTTP
+========================================================= */
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -34,11 +38,17 @@ async function readJson(request) {
   }
 }
 
+/* =========================================================
+   UTILIDADES
+========================================================= */
+
 function normalizeText(value) {
   return String(value || "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[¿?¡!,.;:()[\]{}]/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -47,11 +57,13 @@ function includesAny(text, values) {
 }
 
 /* =========================================================
-   MEMORIA D1
+   D1 - MEMORIA
 ========================================================= */
 
 async function saveMessage(env, sessionId, role, content) {
-  if (!env.DB || !sessionId || !content) return;
+  if (!env.DB || !sessionId || !content) {
+    return;
+  }
 
   try {
     await env.DB
@@ -66,7 +78,9 @@ async function saveMessage(env, sessionId, role, content) {
 }
 
 async function getHistory(env, sessionId) {
-  if (!env.DB || !sessionId) return [];
+  if (!env.DB || !sessionId) {
+    return [];
+  }
 
   try {
     const result = await env.DB
@@ -84,112 +98,103 @@ async function getHistory(env, sessionId) {
 }
 
 /* =========================================================
-   ACCIONES
+   CONFIGURACIÓN DE WEBS
 ========================================================= */
 
 const websites = {
   youtube: {
     name: "YouTube",
+    aliases: ["youtube", "you tube"],
     url: "https://www.youtube.com",
   },
+
   twitch: {
     name: "Twitch",
+    aliases: ["twitch"],
     url: "https://www.twitch.tv",
   },
+
   spotify: {
     name: "Spotify",
+    aliases: ["spotify"],
     url: "https://open.spotify.com",
   },
+
   discord: {
     name: "Discord",
+    aliases: ["discord"],
     url: "https://discord.com/app",
   },
+
   tiktok: {
     name: "TikTok",
+    aliases: ["tiktok", "tik tok"],
     url: "https://www.tiktok.com",
   },
+
   google: {
     name: "Google",
+    aliases: ["google"],
     url: "https://www.google.com",
   },
+
   netflix: {
     name: "Netflix",
+    aliases: ["netflix"],
     url: "https://www.netflix.com",
   },
 };
 
+/* =========================================================
+   CONFIGURACIÓN DE APLICACIONES
+========================================================= */
+
 const apps = {
   chrome: {
     name: "Chrome",
+    aliases: ["chrome", "google chrome"],
   },
+
   edge: {
     name: "Edge",
+    aliases: ["edge", "microsoft edge"],
   },
+
   steam: {
     name: "Steam",
+    aliases: ["steam"],
   },
+
   epic: {
     name: "Epic Games",
+    aliases: ["epic", "epic games"],
   },
+
   notepad: {
     name: "Bloc de notas",
+    aliases: ["bloc de notas", "bloc notas", "notepad"],
   },
+
   calculator: {
     name: "Calculadora",
+    aliases: ["calculadora", "calculator"],
   },
 };
+
+/* =========================================================
+   JUEGOS
+========================================================= */
 
 const games = {
   rocket_league: {
     name: "Rocket League",
+    aliases: ["rocket league", "rocketleague"],
   },
 };
 
-function detectWebsite(text) {
-  if (includesAny(text, ["youtube", "you tube"])) return "youtube";
-  if (text.includes("twitch")) return "twitch";
-  if (text.includes("spotify")) return "spotify";
-  if (text.includes("discord")) return "discord";
-  if (text.includes("tiktok")) return "tiktok";
-  if (text.includes("netflix")) return "netflix";
-  if (text.includes("google")) return "google";
-
-  return null;
-}
-
-function detectApp(text) {
-  if (text.includes("chrome")) return "chrome";
-  if (text.includes("edge")) return "edge";
-  if (text.includes("steam")) return "steam";
-  if (text.includes("epic")) return "epic";
-  if (
-    text.includes("bloc de notas") ||
-    text.includes("bloc notas") ||
-    text.includes("notepad")
-  ) {
-    return "notepad";
-  }
-
-  if (
-    text.includes("calculadora") ||
-    text.includes("calculator")
-  ) {
-    return "calculator";
-  }
-
-  return null;
-}
-
-function detectGame(text) {
-  if (
-    text.includes("rocket league") ||
-    text.includes("rocketleague")
-  ) {
-    return "rocket_league";
-  }
-
-  return null;
-}
+/* =========================================================
+   DETECTAR VERBOS
+========================================================= */
 
 function wantsOpen(text) {
   return includesAny(text, [
@@ -204,11 +209,10 @@ function wantsOpen(text) {
     "iniciar",
     "ejecuta",
     "ejecutar",
-    "juega",
-    "jugar",
     "lanza",
     "lanzar",
-    "abre me",
+    "juega",
+    "jugar",
   ]);
 }
 
@@ -225,104 +229,108 @@ function wantsClose(text) {
   ]);
 }
 
+/* =========================================================
+   BUSCAR ELEMENTOS
+========================================================= */
+
+function textMatchesAliases(text, aliases) {
+  return aliases.some((alias) => text.includes(alias));
+}
+
+/* =========================================================
+   DETECTAR ACCIONES
+========================================================= */
+
 function detectMultipleActions(text) {
   const actions = [];
 
   const isOpen = wantsOpen(text);
   const isClose = wantsClose(text);
 
-  /* SISTEMA: no confundir estas órdenes con cerrar aplicaciones */
+  /* -------------------------------------------------------
+     ORDENADOR
+  ------------------------------------------------------- */
 
-  const shutdownPC =
-    includesAny(text, [
-      "apaga el ordenador",
-      "apaga mi ordenador",
-      "apaga el pc",
-      "apaga mi pc",
-      "apagar el ordenador",
-      "apagar el pc",
-      "apaga windows",
-    ]);
+  const shutdownPC = includesAny(text, [
+    "apaga el ordenador",
+    "apaga mi ordenador",
+    "apaga el pc",
+    "apaga mi pc",
+    "apagar el ordenador",
+    "apagar el pc",
+    "apaga windows",
+  ]);
 
-  const cancelShutdown =
-    includesAny(text, [
-      "cancela el apagado",
-      "cancelar el apagado",
-      "cancela apagado",
-      "cancelar apagado",
-    ]);
+  const cancelShutdown = includesAny(text, [
+    "cancela el apagado",
+    "cancelar el apagado",
+    "cancela apagado",
+    "cancelar apagado",
+  ]);
 
-  const stopBruce =
-    includesAny(text, [
-      "apaga bruce",
-      "apagar bruce",
-      "cierra bruce",
-      "cerrar bruce",
-      "duerme bruce",
-      "dormir bruce",
-    ]);
+  /* -------------------------------------------------------
+     BRUCE
+  ------------------------------------------------------- */
 
-  const wakeBruce =
-    includesAny(text, [
-      "enciende bruce",
-      "encender bruce",
-      "activa bruce",
-      "activar bruce",
-      "despierta bruce",
-      "despertar bruce",
-    ]);
+  const stopBruce = includesAny(text, [
+    "apaga bruce",
+    "apagar bruce",
+    "cierra bruce",
+    "cerrar bruce",
+    "duerme bruce",
+    "dormir bruce",
+  ]);
+
+  const wakeBruce = includesAny(text, [
+    "enciende bruce",
+    "encender bruce",
+    "activa bruce",
+    "activar bruce",
+    "despierta bruce",
+    "despertar bruce",
+  ]);
 
   if (shutdownPC) {
-    actions.push({
-      type: "shutdown_pc",
-    });
-
-    return actions;
+    return [
+      {
+        type: "shutdown_pc",
+      },
+    ];
   }
 
   if (cancelShutdown) {
-    actions.push({
-      type: "cancel_shutdown",
-    });
-
-    return actions;
+    return [
+      {
+        type: "cancel_shutdown",
+      },
+    ];
   }
 
   if (stopBruce) {
-    actions.push({
-      type: "stop_agent",
-    });
-
-    return actions;
+    return [
+      {
+        type: "stop_agent",
+      },
+    ];
   }
 
   if (wakeBruce) {
-    actions.push({
-      type: "wake_agent",
-    });
-
-    return actions;
+    return [
+      {
+        type: "wake_agent",
+      },
+    ];
   }
 
-  /* =========================================================
+  /* -------------------------------------------------------
      ABRIR
-  ========================================================= */
+  ------------------------------------------------------- */
 
   if (isOpen) {
-    if (text.includes("rocket league") || text.includes("rocketleague")) {
-      actions.push({
-        type: "game",
-        target: "rocket_league",
-      });
-    }
+    /* WEBS */
 
-    for (const key of Object.keys(websites)) {
-      const name = normalizeText(websites[key].name);
-
-      if (
-        text.includes(key.replace("_", " ")) ||
-        text.includes(name)
-      ) {
+    for (const [key, website] of Object.entries(websites)) {
+      if (textMatchesAliases(text, website.aliases)) {
         actions.push({
           type: "website",
           target: key,
@@ -330,43 +338,38 @@ function detectMultipleActions(text) {
       }
     }
 
-    for (const key of Object.keys(apps)) {
-      const name = normalizeText(apps[key].name);
+    /* APPS */
 
-      if (
-        text.includes(key.replace("_", " ")) ||
-        text.includes(name)
-      ) {
+    for (const [key, app] of Object.entries(apps)) {
+      if (textMatchesAliases(text, app.aliases)) {
         actions.push({
           type: "app",
           target: key,
         });
       }
     }
+
+    /* JUEGOS */
+
+    for (const [key, game] of Object.entries(games)) {
+      if (textMatchesAliases(text, game.aliases)) {
+        actions.push({
+          type: "game",
+          target: key,
+        });
+      }
+    }
   }
 
-  /* =========================================================
+  /* -------------------------------------------------------
      CERRAR
-  ========================================================= */
+  ------------------------------------------------------- */
 
   if (isClose) {
-    if (
-      text.includes("rocket league") ||
-      text.includes("rocketleague")
-    ) {
-      actions.push({
-        type: "close",
-        target: "rocket_league",
-      });
-    }
+    /* WEBS */
 
-    for (const key of Object.keys(websites)) {
-      const name = normalizeText(websites[key].name);
-
-      if (
-        text.includes(key.replace("_", " ")) ||
-        text.includes(name)
-      ) {
+    for (const [key, website] of Object.entries(websites)) {
+      if (textMatchesAliases(text, website.aliases)) {
         actions.push({
           type: "close_website",
           target: key,
@@ -374,13 +377,21 @@ function detectMultipleActions(text) {
       }
     }
 
-    for (const key of Object.keys(apps)) {
-      const name = normalizeText(apps[key].name);
+    /* APPS */
 
-      if (
-        text.includes(key.replace("_", " ")) ||
-        text.includes(name)
-      ) {
+    for (const [key, app] of Object.entries(apps)) {
+      if (textMatchesAliases(text, app.aliases)) {
+        actions.push({
+          type: "close",
+          target: key,
+        });
+      }
+    }
+
+    /* JUEGOS */
+
+    for (const [key, game] of Object.entries(games)) {
+      if (textMatchesAliases(text, game.aliases)) {
         actions.push({
           type: "close",
           target: key,
@@ -389,16 +400,19 @@ function detectMultipleActions(text) {
     }
   }
 
-  /* Quitar duplicados */
+  /* -------------------------------------------------------
+     ELIMINAR DUPLICADOS
+  ------------------------------------------------------- */
 
   const unique = [];
   const seen = new Set();
 
   for (const action of actions) {
-    const id = `${action.type}:${action.target || ""}`;
+    const identifier =
+      action.type + ":" + (action.target || "");
 
-    if (!seen.has(id)) {
-      seen.add(id);
+    if (!seen.has(identifier)) {
+      seen.add(identifier);
       unique.push(action);
     }
   }
@@ -407,7 +421,7 @@ function detectMultipleActions(text) {
 }
 
 /* =========================================================
-   RESPUESTA DE BRUCE
+   IA
 ========================================================= */
 
 async function generateAIResponse(env, messages) {
@@ -433,7 +447,7 @@ async function generateAIResponse(env, messages) {
   }
 
   if (!content) {
-    content = "No he podido generar una respuesta.";
+    return "No he podido generar una respuesta.";
   }
 
   return String(content);
@@ -452,22 +466,24 @@ async function generateVoice(env, text) {
     throw new Error("Falta ELEVENLABS_VOICE_ID");
   }
 
-  const voiceId = env.ELEVENLABS_VOICE_ID;
-
   const url =
-    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
+    "https://api.elevenlabs.io/v1/text-to-speech/" +
+    env.ELEVENLABS_VOICE_ID;
 
   const response = await fetch(url, {
     method: "POST",
+
     headers: {
       "xi-api-key": env.ELEVENLABS_API_KEY,
       "Content-Type": "application/json",
       Accept: "audio/mpeg",
     },
+
     body: JSON.stringify({
       text,
       model_id: "eleven_multilingual_v2",
       output_format: "mp3_44100_128",
+
       voice_settings: {
         stability: 0.45,
         similarity_boost: 0.85,
@@ -479,8 +495,12 @@ async function generateVoice(env, text) {
 
   if (!response.ok) {
     const errorText = await response.text();
+
     throw new Error(
-      `ElevenLabs ${response.status}: ${errorText}`
+      "ElevenLabs " +
+        response.status +
+        ": " +
+        errorText
     );
   }
 
@@ -494,10 +514,13 @@ async function generateVoice(env, text) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
     const pathname = url.pathname;
     const method = request.method;
 
-    /* CORS */
+    /* -------------------------------------------------------
+       CORS
+    ------------------------------------------------------- */
 
     if (method === "OPTIONS") {
       return new Response(null, {
@@ -506,149 +529,232 @@ export default {
       });
     }
 
-    /* =====================================================
-       HISTORIAL
-    ===================================================== */
+    /* ======================================================
+       GET /api/history
+    ====================================================== */
 
-    if (method === "GET" && pathname === "/api/history") {
+    if (
+      method === "GET" &&
+      pathname === "/api/history"
+    ) {
       const sessionId =
-        url.searchParams.get("sessionId") || "default";
+        url.searchParams.get("sessionId") ||
+        "default";
 
-      const history = await getHistory(env, sessionId);
+      const history =
+        await getHistory(env, sessionId);
 
       return json({
         history,
       });
     }
 
-    /* =====================================================
-       VOZ
-    ===================================================== */
+    /* ======================================================
+       POST /api/speak
+    ====================================================== */
 
-    if (method === "POST" && pathname === "/api/speak") {
+    if (
+      method === "POST" &&
+      pathname === "/api/speak"
+    ) {
       try {
         const body = await readJson(request);
 
-        const text = String(body.text || "").trim();
+        const text = String(
+          body.text || ""
+        ).trim();
 
         if (!text) {
           return json(
             {
-              error: "No hay texto para reproducir.",
+              error:
+                "No hay texto para reproducir.",
             },
             400
           );
         }
 
-        const audioResponse = await generateVoice(env, text);
+        const audio =
+          await generateVoice(env, text);
 
-        return new Response(audioResponse.body, {
+        return new Response(audio.body, {
           status: 200,
+
           headers: {
             ...CORS_HEADERS,
             "Content-Type": "audio/mpeg",
-            "Cache-Control": "no-store",
+            "Cache-Control":
+              "no-store",
           },
         });
       } catch (error) {
-        console.error("Error /api/speak:", error);
+        console.error(
+          "Error /api/speak:",
+          error
+        );
 
         return json(
           {
-            error: error.message || "Error generando voz.",
+            error:
+              error.message ||
+              "Error generando voz.",
           },
           500
         );
       }
     }
 
-    /* =====================================================
-       CHAT
-    ===================================================== */
+    /* ======================================================
+       POST /api/chat
+    ====================================================== */
 
-    if (method === "POST" && pathname === "/api/chat") {
+    if (
+      method === "POST" &&
+      pathname === "/api/chat"
+    ) {
       try {
-        const body = await readJson(request);
+        const body =
+          await readJson(request);
 
-        const userMessage = String(
-          body.message || ""
-        ).trim();
+        const userMessage =
+          String(
+            body.message || ""
+          ).trim();
 
-        const sessionId = String(
-          body.sessionId || "default"
-        );
+        const sessionId =
+          String(
+            body.sessionId ||
+              "default"
+          );
 
         if (!userMessage) {
           return json(
             {
-              error: "Mensaje vacío.",
+              error:
+                "Mensaje vacío.",
             },
             400
           );
         }
 
-        const cleanText = normalizeText(userMessage);
+        const cleanText =
+          normalizeText(
+            userMessage
+          );
 
-        /* =================================================
-           DETECCIÓN DIRECTA DE ACCIONES
-           ================================================= */
+        console.log(
+          "Bruce recibe:",
+          cleanText
+        );
 
-        const actions = detectMultipleActions(cleanText);
+        /* ==================================================
+           DETECCIÓN DIRECTA
+        ================================================== */
 
-        /* =================================================
-           RESPUESTA PARA ACCIONES
-           ================================================= */
+        const actions =
+          detectMultipleActions(
+            cleanText
+          );
+
+        console.log(
+          "Acciones detectadas:",
+          JSON.stringify(actions)
+        );
+
+        /* ==================================================
+           SI HAY ACCIONES, NO USAR GPT
+        ================================================== */
 
         if (actions.length > 0) {
-          let responseText = "Hecho.";
+          let responseText =
+            "Hecho.";
 
-          if (
+          const hasOpen =
             actions.some(
-              (action) => action.type === "shutdown_pc"
-            )
-          ) {
+              (action) =>
+                action.type ===
+                  "website" ||
+                action.type ===
+                  "app" ||
+                action.type ===
+                  "game"
+            );
+
+          const hasClose =
+            actions.some(
+              (action) =>
+                action.type ===
+                  "close" ||
+                action.type ===
+                  "close_website"
+            );
+
+          const hasShutdown =
+            actions.some(
+              (action) =>
+                action.type ===
+                "shutdown_pc"
+            );
+
+          const hasCancelShutdown =
+            actions.some(
+              (action) =>
+                action.type ===
+                "cancel_shutdown"
+            );
+
+          const hasStopBruce =
+            actions.some(
+              (action) =>
+                action.type ===
+                "stop_agent"
+            );
+
+          const hasWakeBruce =
+            actions.some(
+              (action) =>
+                action.type ===
+                "wake_agent"
+            );
+
+          if (hasShutdown) {
             responseText =
               "El ordenador se apagará en 30 segundos.";
           } else if (
-            actions.some(
-              (action) => action.type === "cancel_shutdown"
-            )
+            hasCancelShutdown
           ) {
-            responseText = "He cancelado el apagado.";
+            responseText =
+              "He cancelado el apagado.";
           } else if (
-            actions.some(
-              (action) => action.type === "stop_agent"
-            )
+            hasStopBruce
           ) {
-            responseText = "Bruce entrando en modo de espera.";
+            responseText =
+              "Bruce entrando en modo de espera.";
           } else if (
-            actions.some(
-              (action) => action.type === "wake_agent"
-            )
+            hasWakeBruce
           ) {
-            responseText = "Bruce está activo.";
-          } else if (
-            actions.some(
-              (action) =>
-                action.type === "website" ||
-                action.type === "app"
-            )
-          ) {
-            responseText = "Abriendo.";
-          } else if (
-            actions.some(
-              (action) =>
-                action.type === "close" ||
-                action.type === "close_website"
-            )
-          ) {
-            responseText = "Cerrando.";
-          } else if (
-            actions.some(
-              (action) => action.type === "game"
-            )
-          ) {
-            responseText = "Iniciando el juego.";
+            responseText =
+              "Bruce está activo.";
+          } else if (hasOpen) {
+            if (actions.length === 1) {
+              responseText =
+                "Abriendo.";
+            } else {
+              responseText =
+                "Abriendo " +
+                actions.length +
+                " elementos.";
+            }
+          } else if (hasClose) {
+            if (actions.length === 1) {
+              responseText =
+                "Cerrando.";
+            } else {
+              responseText =
+                "Cerrando " +
+                actions.length +
+                " elementos.";
+            }
           }
 
           await saveMessage(
@@ -667,42 +773,47 @@ export default {
 
           return json({
             response: responseText,
-            actions,
+            actions: actions,
           });
         }
 
-        /* =================================================
+        /* ==================================================
            IA NORMAL
-           ================================================= */
+        ================================================== */
 
-        const history = await getHistory(
-          env,
-          sessionId
-        );
+        const history =
+          await getHistory(
+            env,
+            sessionId
+          );
 
         const messages = [
           {
             role: "system",
+
             content:
               "You are Bruce, a personal AI assistant. " +
-              "You speak Spanish by default. " +
-              "Be concise, useful, calm and intelligent. " +
-              "Your personality is inspired by a sophisticated private assistant: " +
-              "serious, composed and efficient. " +
-              "Do not claim to have performed actions that were not actually sent " +
-              "to the local computer agent.",
+              "Respond in Spanish by default. " +
+              "Be concise, intelligent, calm and useful. " +
+              "Your personality is that of a sophisticated private assistant. " +
+              "You are serious, efficient and composed. " +
+              "Never claim to have opened, closed or controlled something " +
+              "unless the system provided an action for it.",
           },
+
           ...history,
+
           {
             role: "user",
             content: userMessage,
           },
         ];
 
-        const responseText = await generateAIResponse(
-          env,
-          messages
-        );
+        const responseText =
+          await generateAIResponse(
+            env,
+            messages
+          );
 
         await saveMessage(
           env,
@@ -723,7 +834,10 @@ export default {
           actions: [],
         });
       } catch (error) {
-        console.error("Error /api/chat:", error);
+        console.error(
+          "Error /api/chat:",
+          error
+        );
 
         return json(
           {
@@ -736,14 +850,16 @@ export default {
       }
     }
 
-    /* =====================================================
-       ASSETS / WEB
-    ===================================================== */
+    /* ======================================================
+       ARCHIVOS DEL FRONTEND
+    ====================================================== */
 
     if (env.ASSETS) {
       return env.ASSETS.fetch(request);
     }
 
-    return textResponse("Bruce está funcionando.");
+    return textResponse(
+      "Bruce está funcionando."
+    );
   },
 };
