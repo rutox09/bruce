@@ -7,7 +7,6 @@ if (request.method === "POST") {
   try {
 
     const body = await request.json();
-
     const userMessage = body.message;
     const sessionId = body.sessionId;
 
@@ -50,7 +49,7 @@ if (request.method === "POST") {
       {
         role: "system",
         content:
-          "Eres Bruce, un asistente personal inteligente. Responde siempre en español. Tu personalidad es elegante, inteligente, tranquila y directa. Sé útil y práctico. No inventes información. Si no sabes algo, dilo claramente."
+          "Eres Bruce, un asistente personal inteligente. Responde siempre en español. Tu personalidad es elegante, inteligente, tranquila y directa. Sé útil, práctico y claro. No inventes información."
       }
     ];
 
@@ -76,25 +75,29 @@ if (request.method === "POST") {
     const result = await env.AI.run(
       "@cf/openai/gpt-oss-20b",
       {
-        messages: messages
+        messages
       }
     );
 
-    let answer = result;
+    let answer = "";
 
-    if (
+    if (typeof result === "string") {
+      answer = result;
+    } else if (
+      result &&
       typeof result === "object" &&
-      result !== null &&
-      result.response
+      "response" in result
     ) {
       answer = result.response;
+    } else {
+      answer = JSON.stringify(result);
     }
 
     await env.DB
       .prepare(
         "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
       )
-      .bind(sessionId, "assistant", String(answer))
+      .bind(sessionId, "assistant", answer)
       .run();
 
     return new Response(
@@ -102,6 +105,7 @@ if (request.method === "POST") {
         response: answer
       }),
       {
+        status: 200,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*"
@@ -113,13 +117,14 @@ if (request.method === "POST") {
 
     return new Response(
       JSON.stringify({
-        error: "Error al ejecutar a Bruce",
+        error: "Error en Bruce",
         details: String(error)
       }),
       {
         status: 500,
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
         }
       }
     );
