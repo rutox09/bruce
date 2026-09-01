@@ -2,6 +2,7 @@ let sessionId = localStorage.getItem("bruce_session_id");
 
 if (!sessionId) {
     sessionId = crypto.randomUUID();
+
     localStorage.setItem(
         "bruce_session_id",
         sessionId
@@ -9,20 +10,12 @@ if (!sessionId) {
 }
 
 
-// =====================================================
-// URLS
-// =====================================================
-
 const WORKER_URL =
     "https://brucewayne.aleixruto.workers.dev/api/chat";
 
 const AGENT_URL =
     "http://127.0.0.1:8765/action";
 
-
-// =====================================================
-// ELEMENTOS
-// =====================================================
 
 const chat =
     document.getElementById("chat");
@@ -33,13 +26,6 @@ const inputArea =
 const input =
     document.getElementById("messageInput");
 
-const micButton =
-    document.getElementById("micButton");
-
-
-// =====================================================
-// MOSTRAR MENSAJES
-// =====================================================
 
 function addMessage(text, type) {
 
@@ -52,7 +38,9 @@ function addMessage(text, type) {
     message.textContent =
         text;
 
-    chat.appendChild(message);
+    chat.appendChild(
+        message
+    );
 
     chat.scrollTop =
         chat.scrollHeight;
@@ -60,60 +48,7 @@ function addMessage(text, type) {
 
 
 // =====================================================
-// BRUCE HABLA
-// =====================================================
-
-function speak(text) {
-
-    if (!("speechSynthesis" in window)) {
-        console.warn(
-            "Este navegador no soporta síntesis de voz."
-        );
-
-        return;
-    }
-
-    speechSynthesis.cancel();
-
-    const utterance =
-        new SpeechSynthesisUtterance(text);
-
-    utterance.lang =
-        "es-ES";
-
-    utterance.rate =
-        1;
-
-    utterance.pitch =
-        1;
-
-    utterance.volume =
-        1;
-
-    const voices =
-        speechSynthesis.getVoices();
-
-    const spanishVoice =
-        voices.find(
-            voice =>
-                voice.lang &&
-                voice.lang.toLowerCase()
-                    .startsWith("es")
-        );
-
-    if (spanishVoice) {
-        utterance.voice =
-            spanishVoice;
-    }
-
-    speechSynthesis.speak(
-        utterance
-    );
-}
-
-
-// =====================================================
-// EJECUTAR ACCIÓN EN EL PC
+// EJECUTAR UNA ACCIÓN
 // =====================================================
 
 async function executeAction(action) {
@@ -141,13 +76,16 @@ async function executeAction(action) {
                 }
             );
 
+
         const data =
             await response.json();
+
 
         console.log(
             "Bruce Agent:",
             data
         );
+
 
         if (!data.success) {
 
@@ -157,10 +95,11 @@ async function executeAction(action) {
             );
         }
 
+
     } catch (error) {
 
         console.error(
-            "No se pudo conectar con Bruce Agent:",
+            "Error conectando con Bruce Agent:",
             error
         );
     }
@@ -171,28 +110,22 @@ async function executeAction(action) {
 // ENVIAR MENSAJE
 // =====================================================
 
-async function sendMessage(text = null) {
+async function sendMessage() {
 
-    if (text === null) {
+    const text =
+        input.value.trim();
 
-        text =
-            input.value.trim();
-    }
 
     if (!text) {
         return;
     }
 
 
-    // Mostrar mensaje del usuario
-
     addMessage(
         text,
         "user"
     );
 
-
-    // Limpiar entrada
 
     input.value = "";
 
@@ -211,8 +144,11 @@ async function sendMessage(text = null) {
                     },
 
                     body: JSON.stringify({
+
                         message: text,
+
                         sessionId: sessionId
+
                     })
                 }
             );
@@ -238,7 +174,7 @@ async function sendMessage(text = null) {
                     responseText
                 );
 
-        } catch (error) {
+        } catch {
 
             addMessage(
                 "Bruce ha devuelto una respuesta inesperada: " +
@@ -249,8 +185,6 @@ async function sendMessage(text = null) {
             return;
         }
 
-
-        // Error del Worker
 
         if (data.error) {
 
@@ -264,33 +198,46 @@ async function sendMessage(text = null) {
         }
 
 
-        // Respuesta de Bruce
-
-        const responseTextBruce =
-            data.response ||
-            "No tengo ninguna respuesta.";
-
-
         addMessage(
-            responseTextBruce,
+            data.response,
             "bruce"
         );
 
 
-        // Bruce habla
+        // =================================================
+        // VARIAS ACCIONES
+        // =================================================
 
-        speak(
-            responseTextBruce
-        );
+        if (
+            Array.isArray(
+                data.actions
+            )
+        ) {
+
+            for (
+                const action
+                of data.actions
+            ) {
+
+                await executeAction(
+                    action
+                );
+
+            }
+
+        }
 
 
-        // Ejecutar acción
+        // =================================================
+        // UNA ACCIÓN
+        // =================================================
 
-        if (data.action) {
+        else if (data.action) {
 
             await executeAction(
                 data.action
             );
+
         }
 
 
@@ -301,6 +248,7 @@ async function sendMessage(text = null) {
             error.message,
             "bruce"
         );
+
 
         console.error(
             error
@@ -357,6 +305,7 @@ async function loadHistory() {
                     message.content,
                     "user"
                 );
+
             }
 
 
@@ -384,143 +333,6 @@ async function loadHistory() {
 
 
 // =====================================================
-// RECONOCIMIENTO DE VOZ
-// =====================================================
-
-const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
-
-
-let recognition = null;
-
-
-if (SpeechRecognition) {
-
-    recognition =
-        new SpeechRecognition();
-
-
-    recognition.lang =
-        "es-ES";
-
-
-    recognition.interimResults =
-        false;
-
-
-    recognition.continuous =
-        false;
-
-
-    recognition.maxAlternatives =
-        1;
-
-
-    recognition.onstart =
-        function() {
-
-            console.log(
-                "Bruce está escuchando..."
-            );
-
-            micButton.textContent =
-                "🔴";
-
-            micButton.title =
-                "Bruce está escuchando...";
-        };
-
-
-    recognition.onresult =
-        function(event) {
-
-            const transcript =
-                event
-                    .results[0][0]
-                    .transcript
-                    .trim();
-
-
-            console.log(
-                "Has dicho:",
-                transcript
-            );
-
-
-            input.value =
-                transcript;
-
-
-            sendMessage(
-                transcript
-            );
-        };
-
-
-    recognition.onerror =
-        function(event) {
-
-            console.error(
-                "Error de reconocimiento:",
-                event.error
-            );
-
-            micButton.textContent =
-                "🎙️";
-
-            micButton.title =
-                "Hablar con Bruce";
-        };
-
-
-    recognition.onend =
-        function() {
-
-            micButton.textContent =
-                "🎙️";
-
-            micButton.title =
-                "Hablar con Bruce";
-        };
-
-
-    micButton.addEventListener(
-        "click",
-        function() {
-
-            try {
-
-                recognition.start();
-
-            } catch (error) {
-
-                console.error(
-                    "No se pudo iniciar el micrófono:",
-                    error
-                );
-            }
-        }
-    );
-
-
-} else {
-
-    console.warn(
-        "SpeechRecognition no está disponible."
-    );
-
-
-    micButton.disabled =
-        true;
-
-
-    micButton.title =
-        "Tu navegador no soporta reconocimiento de voz";
-}
-
-
-// =====================================================
 // FORMULARIO
 // =====================================================
 
@@ -536,28 +348,7 @@ inputArea.addEventListener(
 
 
 // =====================================================
-// CARGAR VOCES
-// =====================================================
-
-if (
-    "speechSynthesis" in window
-) {
-
-    speechSynthesis.onvoiceschanged =
-        function() {
-
-            console.log(
-                "Voces disponibles:",
-                speechSynthesis
-                    .getVoices()
-                    .length
-            );
-        };
-}
-
-
-// =====================================================
-// HISTORIAL
+// INICIO
 // =====================================================
 
 loadHistory();
