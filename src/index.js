@@ -16,24 +16,20 @@ export default {
       try {
 
         const sessionId =
-          url.searchParams.get(
-            "sessionId"
-          );
+          url.searchParams.get("sessionId");
 
 
         if (!sessionId) {
 
           return new Response(
             JSON.stringify({
-              error:
-                "Falta el sessionId"
+              error: "Falta el sessionId"
             }),
             {
               status: 400,
               headers: {
                 "Content-Type":
                   "application/json",
-
                 "Access-Control-Allow-Origin":
                   "*"
               }
@@ -61,7 +57,6 @@ export default {
             headers: {
               "Content-Type":
                 "application/json",
-
               "Access-Control-Allow-Origin":
                 "*"
             }
@@ -75,7 +70,196 @@ export default {
           JSON.stringify({
             error:
               "No se pudo cargar la memoria",
+            details:
+              String(error)
+          }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type":
+                "application/json",
+              "Access-Control-Allow-Origin":
+                "*"
+            }
+          }
+        );
+      }
+    }
 
+
+    // =====================================================
+    // VOZ DE BRUCE - ELEVENLABS
+    // =====================================================
+
+    if (
+      request.method === "POST" &&
+      url.pathname === "/api/speak"
+    ) {
+
+      try {
+
+        const body =
+          await request.json();
+
+        const text =
+          String(body.text || "").trim();
+
+
+        if (!text) {
+
+          return new Response(
+            "Falta el texto",
+            {
+              status: 400
+            }
+          );
+        }
+
+
+        if (!env.ELEVENLABS_API_KEY) {
+
+          return new Response(
+            JSON.stringify({
+              error:
+                "Falta ELEVENLABS_API_KEY"
+            }),
+            {
+              status: 500,
+              headers: {
+                "Content-Type":
+                  "application/json"
+              }
+            }
+          );
+        }
+
+
+        if (!env.ELEVENLABS_VOICE_ID) {
+
+          return new Response(
+            JSON.stringify({
+              error:
+                "Falta ELEVENLABS_VOICE_ID"
+            }),
+            {
+              status: 500,
+              headers: {
+                "Content-Type":
+                  "application/json"
+              }
+            }
+          );
+        }
+
+
+        const elevenResponse =
+          await fetch(
+            `https://api.elevenlabs.io/v1/text-to-speech/${env.ELEVENLABS_VOICE_ID}?output_format=mp3_44100_128`,
+            {
+              method: "POST",
+
+              headers: {
+                "xi-api-key":
+                  env.ELEVENLABS_API_KEY,
+
+                "Content-Type":
+                  "application/json"
+              },
+
+              body: JSON.stringify({
+
+                text: text,
+
+                model_id:
+                  "eleven_multilingual_v2",
+
+                language_code:
+                  "es",
+
+                voice_settings: {
+
+                  stability:
+                    0.45,
+
+                  similarity_boost:
+                    0.85,
+
+                  style:
+                    0.35,
+
+                  use_speaker_boost:
+                    true
+                }
+              })
+            }
+          );
+
+
+        if (!elevenResponse.ok) {
+
+          const errorText =
+            await elevenResponse.text();
+
+          console.error(
+            "ElevenLabs error:",
+            elevenResponse.status,
+            errorText
+          );
+
+          return new Response(
+            JSON.stringify({
+              error:
+                "ElevenLabs devolvió un error",
+              status:
+                elevenResponse.status,
+              details:
+                errorText
+            }),
+            {
+              status: 502,
+              headers: {
+                "Content-Type":
+                  "application/json"
+              }
+            }
+          );
+        }
+
+
+        const audio =
+          await elevenResponse.arrayBuffer();
+
+
+        return new Response(
+          audio,
+          {
+            status: 200,
+
+            headers: {
+              "Content-Type":
+                "audio/mpeg",
+
+              "Cache-Control":
+                "no-store",
+
+              "Access-Control-Allow-Origin":
+                "*"
+            }
+          }
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "ERROR ELEVENLABS:",
+          error
+        );
+
+        return new Response(
+          JSON.stringify({
+            error:
+              "No se pudo generar la voz",
             details:
               String(error)
           }),
@@ -128,11 +312,9 @@ export default {
             }),
             {
               status: 400,
-
               headers: {
                 "Content-Type":
                   "application/json",
-
                 "Access-Control-Allow-Origin":
                   "*"
               }
@@ -167,7 +349,7 @@ Eres Bruce, un asistente personal inteligente.
 
 Responde siempre en español.
 
-Tu personalidad:
+Tu personalidad es:
 - elegante
 - inteligente
 - tranquila
@@ -178,12 +360,6 @@ No inventes información.
 
 Puedes controlar el ordenador.
 
-Si el usuario pide una acción del ordenador,
-la aplicación puede ejecutarla.
-
-Si la petición no requiere una acción,
-responde normalmente.
-
 Las páginas web disponibles son:
 - YouTube
 - Twitch
@@ -193,7 +369,7 @@ Las páginas web disponibles son:
 - Google
 - Netflix
 
-Aplicaciones disponibles:
+Las aplicaciones disponibles son:
 - Chrome
 - Edge
 - Steam
@@ -201,8 +377,13 @@ Aplicaciones disponibles:
 - Bloc de notas
 - Calculadora
 
-Juego disponible:
+El juego disponible es:
 - Rocket League
+
+Cuando el usuario haga una petición de control del ordenador,
+devuelve una acción.
+
+No escribas explicaciones sobre las acciones.
 `
           }
         ];
@@ -233,7 +414,7 @@ Juego disponible:
 
 
         // =================================================
-        // GUARDAR USUARIO
+        // GUARDAR MENSAJE
         // =================================================
 
         await env.DB
@@ -341,10 +522,6 @@ Juego disponible:
         const actions = [];
 
 
-        // =================================================
-        // DETECTAR TIPO DE ORDEN
-        // =================================================
-
         const wantsClose =
           /\b(cierra|cerrar|cerrame|cierra la|cierra el|cerrar la|cerrar el)\b/
             .test(text);
@@ -356,16 +533,14 @@ Juego disponible:
 
 
         // =================================================
-        // CERRAR WEBS
+        // CERRAR
         // =================================================
 
         if (wantsClose) {
 
           for (
             const [id, aliases]
-            of Object.entries(
-              websites
-            )
+            of Object.entries(websites)
           ) {
 
             if (
@@ -382,21 +557,14 @@ Juego disponible:
 
                 target:
                   id
-
               });
             }
           }
 
 
-          // =================================================
-          // CERRAR APPS
-          // =================================================
-
           for (
             const [id, aliases]
-            of Object.entries(
-              apps
-            )
+            of Object.entries(apps)
           ) {
 
             if (
@@ -413,21 +581,14 @@ Juego disponible:
 
                 target:
                   id
-
               });
             }
           }
 
 
-          // =================================================
-          // CERRAR JUEGOS
-          // =================================================
-
           for (
             const [id, aliases]
-            of Object.entries(
-              games
-            )
+            of Object.entries(games)
           ) {
 
             if (
@@ -444,75 +605,8 @@ Juego disponible:
 
                 target:
                   id
-
               });
             }
-          }
-
-
-          if (
-            actions.length > 0
-          ) {
-
-            const names =
-              [];
-
-
-            for (
-              const action
-              of actions
-            ) {
-
-              names.push(
-                action.target
-              );
-            }
-
-
-            const readable =
-              names.join(", ");
-
-
-            const reply =
-              `Cerrando ${readable}.`;
-
-
-            await env.DB
-              .prepare(
-                "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
-              )
-              .bind(
-                sessionId,
-                "assistant",
-                reply
-              )
-              .run();
-
-
-            return new Response(
-              JSON.stringify({
-
-                response:
-                  reply,
-
-                actions:
-                  actions
-
-              }),
-              {
-
-                status: 200,
-
-                headers: {
-
-                  "Content-Type":
-                    "application/json",
-
-                  "Access-Control-Allow-Origin":
-                    "*"
-                }
-              }
-            );
           }
         }
 
@@ -523,15 +617,9 @@ Juego disponible:
 
         if (wantsOpen) {
 
-          // -----------------------------------------------
-          // WEBSITES
-          // -----------------------------------------------
-
           for (
             const [id, aliases]
-            of Object.entries(
-              websites
-            )
+            of Object.entries(websites)
           ) {
 
             if (
@@ -548,21 +636,14 @@ Juego disponible:
 
                 target:
                   id
-
               });
             }
           }
 
 
-          // -----------------------------------------------
-          // APPS
-          // -----------------------------------------------
-
           for (
             const [id, aliases]
-            of Object.entries(
-              apps
-            )
+            of Object.entries(apps)
           ) {
 
             if (
@@ -579,21 +660,14 @@ Juego disponible:
 
                 target:
                   id
-
               });
             }
           }
 
 
-          // -----------------------------------------------
-          // JUEGOS
-          // -----------------------------------------------
-
           for (
             const [id, aliases]
-            of Object.entries(
-              games
-            )
+            of Object.entries(games)
           ) {
 
             if (
@@ -610,64 +684,71 @@ Juego disponible:
 
                 target:
                   id
-
               });
             }
           }
+        }
 
 
-          if (
-            actions.length > 0
-          ) {
+        // =================================================
+        // SI HAY ACCIONES
+        // =================================================
 
-            const names =
-              actions.map(
-                action =>
-                  action.target
-              );
+        if (
+          actions.length > 0
+        ) {
 
-
-            const reply =
-              `Abriendo ${names.join(", ")}.`;
-
-
-            await env.DB
-              .prepare(
-                "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
-              )
-              .bind(
-                sessionId,
-                "assistant",
-                reply
-              )
-              .run();
-
-
-            return new Response(
-              JSON.stringify({
-
-                response:
-                  reply,
-
-                actions:
-                  actions
-
-              }),
-              {
-
-                status: 200,
-
-                headers: {
-
-                  "Content-Type":
-                    "application/json",
-
-                  "Access-Control-Allow-Origin":
-                    "*"
-                }
-              }
+          const names =
+            actions.map(
+              action =>
+                action.target
             );
-          }
+
+
+          const verb =
+            wantsClose
+              ? "Cerrando"
+              : "Abriendo";
+
+
+          const reply =
+            `${verb} ${names.join(", ")}.`;
+
+
+          await env.DB
+            .prepare(
+              "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
+            )
+            .bind(
+              sessionId,
+              "assistant",
+              reply
+            )
+            .run();
+
+
+          return new Response(
+            JSON.stringify({
+
+              response:
+                reply,
+
+              actions:
+                actions
+
+            }),
+            {
+              status: 200,
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+
+                "Access-Control-Allow-Origin":
+                  "*"
+              }
+            }
+          );
         }
 
 
@@ -679,7 +760,6 @@ Juego disponible:
           await env.AI.run(
             "@cf/openai/gpt-oss-20b",
             {
-
               messages:
                 messages,
 
@@ -715,10 +795,6 @@ Juego disponible:
         }
 
 
-        // =================================================
-        // GUARDAR RESPUESTA
-        // =================================================
-
         await env.DB
           .prepare(
             "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
@@ -742,11 +818,9 @@ Juego disponible:
 
           }),
           {
-
             status: 200,
 
             headers: {
-
               "Content-Type":
                 "application/json",
 
@@ -776,11 +850,9 @@ Juego disponible:
 
           }),
           {
-
             status: 500,
 
             headers: {
-
               "Content-Type":
                 "application/json",
 
