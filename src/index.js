@@ -1,6 +1,8 @@
 export default {
   async fetch(request, env) {
+
     const url = new URL(request.url);
+
 
     // =====================================================
     // HISTORIAL
@@ -10,61 +12,84 @@ export default {
       request.method === "GET" &&
       url.pathname === "/api/history"
     ) {
+
       try {
+
         const sessionId =
-          url.searchParams.get("sessionId");
+          url.searchParams.get(
+            "sessionId"
+          );
+
 
         if (!sessionId) {
+
           return new Response(
             JSON.stringify({
-              error: "Falta el sessionId"
+              error:
+                "Falta el sessionId"
             }),
             {
               status: 400,
               headers: {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
+                "Content-Type":
+                  "application/json",
+
+                "Access-Control-Allow-Origin":
+                  "*"
               }
             }
           );
         }
 
-        const result = await env.DB
-          .prepare(
-            "SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC LIMIT 100"
-          )
-          .bind(sessionId)
-          .all();
+
+        const result =
+          await env.DB
+            .prepare(
+              "SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC LIMIT 100"
+            )
+            .bind(sessionId)
+            .all();
+
 
         return new Response(
           JSON.stringify({
-            messages: result.results
+            messages:
+              result.results
           }),
           {
             status: 200,
             headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*"
+              "Content-Type":
+                "application/json",
+
+              "Access-Control-Allow-Origin":
+                "*"
             }
           }
         );
 
+
       } catch (error) {
+
         return new Response(
           JSON.stringify({
-            error: "No se pudo cargar la memoria",
-            details: String(error)
+            error:
+              "No se pudo cargar la memoria",
+
+            details:
+              String(error)
           }),
           {
             status: 500,
             headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*"
+              "Content-Type":
+                "application/json"
             }
           }
         );
       }
     }
+
 
     // =====================================================
     // CHAT
@@ -74,145 +99,138 @@ export default {
       request.method === "POST" &&
       url.pathname === "/api/chat"
     ) {
+
       try {
-        const body = await request.json();
+
+        const body =
+          await request.json();
+
 
         const userMessage =
-          String(body.message || "").trim();
+          String(
+            body.message || ""
+          ).trim();
+
 
         const sessionId =
           body.sessionId;
 
-        if (!userMessage || !sessionId) {
+
+        if (
+          !userMessage ||
+          !sessionId
+        ) {
+
           return new Response(
             JSON.stringify({
-              error: "Falta el mensaje o la sesión"
+              error:
+                "Falta el mensaje o la sesión"
             }),
             {
               status: 400,
+
               headers: {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
+                "Content-Type":
+                  "application/json",
+
+                "Access-Control-Allow-Origin":
+                  "*"
               }
             }
           );
         }
 
+
         // =================================================
         // MEMORIA
         // =================================================
 
-        const previous = await env.DB
-          .prepare(
-            "SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC LIMIT 30"
-          )
-          .bind(sessionId)
-          .all();
+        const previous =
+          await env.DB
+            .prepare(
+              "SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC LIMIT 30"
+            )
+            .bind(
+              sessionId
+            )
+            .all();
+
 
         const messages = [
+
           {
-            role: "system",
+            role:
+              "system",
+
             content: `
 Eres Bruce, un asistente personal inteligente.
 
 Responde siempre en español.
-Tu personalidad es elegante, inteligente, tranquila y directa.
+
+Tu personalidad:
+- elegante
+- inteligente
+- tranquila
+- directa
+- práctica
 
 No inventes información.
 
-Puedes conversar normalmente y también controlar el ordenador.
+Puedes controlar el ordenador.
 
-IMPORTANTE:
-Si el usuario pide una acción del ordenador, responde SOLO con JSON válido.
+Si el usuario pide una acción del ordenador,
+la aplicación puede ejecutarla.
 
-Formato:
+Si la petición no requiere una acción,
+responde normalmente.
 
-{
-  "reply": "mensaje",
-  "action": {
-    "type": "TIPO",
-    "target": "OBJETIVO"
-  }
-}
+Las páginas web disponibles son:
+- YouTube
+- Twitch
+- Spotify
+- Discord
+- TikTok
+- Google
+- Netflix
 
-Si no hay acción:
+Aplicaciones disponibles:
+- Chrome
+- Edge
+- Steam
+- Epic Games
+- Bloc de notas
+- Calculadora
 
-{
-  "reply": "respuesta",
-  "action": null
-}
-
-No uses Markdown.
-No uses bloques de código.
-No escribas nada fuera del JSON.
-
-Acciones:
-
-Páginas web:
-type = website
-
-targets:
-youtube
-twitch
-spotify
-discord
-tiktok
-google
-netflix
-
-Cerrar páginas:
-type = close_website
-
-targets:
-youtube
-twitch
-spotify
-discord
-tiktok
-google
-netflix
-
-Aplicaciones:
-type = app
-
-targets:
-chrome
-edge
-steam
-notepad
-calculator
-
-Juegos:
-type = game
-
-targets:
-rocket_league
-
-Cerrar aplicaciones y juegos:
-type = close
-
-targets:
-chrome
-edge
-steam
-notepad
-calculator
-rocket_league
+Juego disponible:
+- Rocket League
 `
           }
         ];
 
-        for (const msg of previous.results) {
+
+        for (
+          const msg
+          of previous.results
+        ) {
+
           messages.push({
-            role: msg.role,
-            content: msg.content
+            role:
+              msg.role,
+
+            content:
+              msg.content
           });
         }
 
+
         messages.push({
-          role: "user",
-          content: userMessage
+          role:
+            "user",
+
+          content:
+            userMessage
         });
+
 
         // =================================================
         // GUARDAR USUARIO
@@ -229,315 +247,451 @@ rocket_league
           )
           .run();
 
+
         // =================================================
-        // DETECCIÓN DIRECTA DE ÓRDENES
+        // DETECCIÓN DIRECTA
         // =================================================
 
         const text =
           userMessage
             .toLowerCase()
             .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "");
+            .replace(
+              /[\u0300-\u036f]/g,
+              ""
+            );
+
 
         const websites = {
-          youtube: ["youtube", "you tube"],
-          twitch: ["twitch"],
-          spotify: ["spotify"],
-          discord: ["discord"],
-          tiktok: ["tiktok", "tik tok"],
-          google: ["google"],
-          netflix: ["netflix"]
+
+          youtube: [
+            "youtube",
+            "you tube"
+          ],
+
+          twitch: [
+            "twitch"
+          ],
+
+          spotify: [
+            "spotify"
+          ],
+
+          discord: [
+            "discord"
+          ],
+
+          tiktok: [
+            "tiktok",
+            "tik tok"
+          ],
+
+          google: [
+            "google"
+          ],
+
+          netflix: [
+            "netflix"
+          ]
         };
 
+
         const apps = {
-          chrome: ["chrome", "google chrome"],
-          edge: ["edge", "microsoft edge"],
-          steam: ["steam"],
+
+          chrome: [
+            "chrome",
+            "google chrome"
+          ],
+
+          edge: [
+            "edge",
+            "microsoft edge"
+          ],
+
+          steam: [
+            "steam"
+          ],
+
+          epic: [
+            "epic",
+            "epic games"
+          ],
+
           notepad: [
             "bloc de notas",
             "notepad"
           ],
+
           calculator: [
             "calculadora",
             "calculator"
           ]
         };
 
+
         const games = {
+
           rocket_league: [
             "rocket league",
             "rocket"
           ]
         };
 
-        let action = null;
-        let reply = null;
 
-        // -------------------------------------------------
-        // CERRAR PÁGINA
-        // -------------------------------------------------
+        const actions = [];
 
-        const closeWords = [
-          "cierra",
-          "cerrar",
-          "cierra la",
-          "cierra el",
-          "cerrame",
-          "cerrar la",
-          "cerrar el"
-        ];
+
+        // =================================================
+        // DETECTAR TIPO DE ORDEN
+        // =================================================
 
         const wantsClose =
-          closeWords.some(
-            word => text.includes(word)
-          );
+          /\b(cierra|cerrar|cerrame|cierra la|cierra el|cerrar la|cerrar el)\b/
+            .test(text);
+
+
+        const wantsOpen =
+          /\b(abre|abrir|abrirme|pon|poner|ponme|inicia|iniciar|ejecuta|juega)\b/
+            .test(text);
+
+
+        // =================================================
+        // CERRAR WEBS
+        // =================================================
 
         if (wantsClose) {
 
-          for (const [id, aliases] of Object.entries(websites)) {
+          for (
+            const [id, aliases]
+            of Object.entries(
+              websites
+            )
+          ) {
 
             if (
               aliases.some(
-                alias => text.includes(alias)
+                alias =>
+                  text.includes(alias)
               )
             ) {
-              action = {
-                type: "close_website",
-                target: id
-              };
 
-              reply =
-                `Cerrando ${id}.`;
+              actions.push({
 
-              break;
+                type:
+                  "close_website",
+
+                target:
+                  id
+
+              });
             }
           }
 
-          // Cerrar aplicación/juego
-          if (!action) {
 
-            for (const [id, aliases] of Object.entries(apps)) {
+          // =================================================
+          // CERRAR APPS
+          // =================================================
 
-              if (
-                aliases.some(
-                  alias => text.includes(alias)
-                )
-              ) {
-                action = {
-                  type: "close",
-                  target: id
-                };
+          for (
+            const [id, aliases]
+            of Object.entries(
+              apps
+            )
+          ) {
 
-                reply =
-                  `Cerrando ${id}.`;
+            if (
+              aliases.some(
+                alias =>
+                  text.includes(alias)
+              )
+            ) {
 
-                break;
+              actions.push({
+
+                type:
+                  "close",
+
+                target:
+                  id
+
+              });
+            }
+          }
+
+
+          // =================================================
+          // CERRAR JUEGOS
+          // =================================================
+
+          for (
+            const [id, aliases]
+            of Object.entries(
+              games
+            )
+          ) {
+
+            if (
+              aliases.some(
+                alias =>
+                  text.includes(alias)
+              )
+            ) {
+
+              actions.push({
+
+                type:
+                  "close",
+
+                target:
+                  id
+
+              });
+            }
+          }
+
+
+          if (
+            actions.length > 0
+          ) {
+
+            const names =
+              [];
+
+
+            for (
+              const action
+              of actions
+            ) {
+
+              names.push(
+                action.target
+              );
+            }
+
+
+            const readable =
+              names.join(", ");
+
+
+            const reply =
+              `Cerrando ${readable}.`;
+
+
+            await env.DB
+              .prepare(
+                "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
+              )
+              .bind(
+                sessionId,
+                "assistant",
+                reply
+              )
+              .run();
+
+
+            return new Response(
+              JSON.stringify({
+
+                response:
+                  reply,
+
+                actions:
+                  actions
+
+              }),
+              {
+
+                status: 200,
+
+                headers: {
+
+                  "Content-Type":
+                    "application/json",
+
+                  "Access-Control-Allow-Origin":
+                    "*"
+                }
               }
-            }
-          }
-
-          if (!action) {
-
-            for (const [id, aliases] of Object.entries(games)) {
-
-              if (
-                aliases.some(
-                  alias => text.includes(alias)
-                )
-              ) {
-                action = {
-                  type: "close",
-                  target: id
-                };
-
-                reply =
-                  `Cerrando Rocket League.`;
-
-                break;
-              }
-            }
-          }
-        }
-
-        // -------------------------------------------------
-        // ABRIR PÁGINA
-        // -------------------------------------------------
-
-        if (!action) {
-
-          const openWords = [
-            "abre",
-            "abrir",
-            "pon",
-            "poner",
-            "entra en",
-            "abrirme",
-            "ponme"
-          ];
-
-          const wantsOpen =
-            openWords.some(
-              word => text.includes(word)
             );
-
-          if (wantsOpen) {
-
-            for (const [id, aliases] of Object.entries(websites)) {
-
-              if (
-                aliases.some(
-                  alias => text.includes(alias)
-                )
-              ) {
-                action = {
-                  type: "website",
-                  target: id
-                };
-
-                reply =
-                  `Abriendo ${id}.`;
-
-                break;
-              }
-            }
           }
         }
 
-        // -------------------------------------------------
-        // ABRIR APP
-        // -------------------------------------------------
-
-        if (!action) {
-
-          const openWords = [
-            "abre",
-            "abrir",
-            "inicia",
-            "iniciar",
-            "pon",
-            "poner",
-            "ejecuta"
-          ];
-
-          const wantsOpen =
-            openWords.some(
-              word => text.includes(word)
-            );
-
-          if (wantsOpen) {
-
-            for (const [id, aliases] of Object.entries(apps)) {
-
-              if (
-                aliases.some(
-                  alias => text.includes(alias)
-                )
-              ) {
-                action = {
-                  type: "app",
-                  target: id
-                };
-
-                reply =
-                  `Abriendo ${id}.`;
-
-                break;
-              }
-            }
-          }
-        }
-
-        // -------------------------------------------------
-        // ABRIR JUEGO
-        // -------------------------------------------------
-
-        if (!action) {
-
-          const openWords = [
-            "abre",
-            "abrir",
-            "inicia",
-            "iniciar",
-            "juega",
-            "pon"
-          ];
-
-          const wantsOpen =
-            openWords.some(
-              word => text.includes(word)
-            );
-
-          if (wantsOpen) {
-
-            for (const [id, aliases] of Object.entries(games)) {
-
-              if (
-                aliases.some(
-                  alias => text.includes(alias)
-                )
-              ) {
-                action = {
-                  type: "game",
-                  target: id
-                };
-
-                reply =
-                  "Iniciando Rocket League.";
-
-                break;
-              }
-            }
-          }
-        }
 
         // =================================================
-        // SI ES UNA ORDEN CONOCIDA
-        // NO LLAMAMOS A LA IA
+        // ABRIR
         // =================================================
 
-        if (action) {
+        if (wantsOpen) {
 
-          await env.DB
-            .prepare(
-              "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
-            )
-            .bind(
-              sessionId,
-              "assistant",
-              reply
-            )
-            .run();
+          // -----------------------------------------------
+          // WEBSITES
+          // -----------------------------------------------
 
-          return new Response(
-            JSON.stringify({
-              response: reply,
-              action: action
-            }),
+          for (
+            const [id, aliases]
+            of Object.entries(
+              websites
+            )
+          ) {
+
+            if (
+              aliases.some(
+                alias =>
+                  text.includes(alias)
+              )
+            ) {
+
+              actions.push({
+
+                type:
+                  "website",
+
+                target:
+                  id
+
+              });
+            }
+          }
+
+
+          // -----------------------------------------------
+          // APPS
+          // -----------------------------------------------
+
+          for (
+            const [id, aliases]
+            of Object.entries(
+              apps
+            )
+          ) {
+
+            if (
+              aliases.some(
+                alias =>
+                  text.includes(alias)
+              )
+            ) {
+
+              actions.push({
+
+                type:
+                  "app",
+
+                target:
+                  id
+
+              });
+            }
+          }
+
+
+          // -----------------------------------------------
+          // JUEGOS
+          // -----------------------------------------------
+
+          for (
+            const [id, aliases]
+            of Object.entries(
+              games
+            )
+          ) {
+
+            if (
+              aliases.some(
+                alias =>
+                  text.includes(alias)
+              )
+            ) {
+
+              actions.push({
+
+                type:
+                  "game",
+
+                target:
+                  id
+
+              });
+            }
+          }
+
+
+          if (
+            actions.length > 0
+          ) {
+
+            const names =
+              actions.map(
+                action =>
+                  action.target
+              );
+
+
+            const reply =
+              `Abriendo ${names.join(", ")}.`;
+
+
+            await env.DB
+              .prepare(
+                "INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)"
+              )
+              .bind(
+                sessionId,
+                "assistant",
+                reply
+              )
+              .run();
+
+
+            return new Response(
+              JSON.stringify({
+
+                response:
+                  reply,
+
+                actions:
+                  actions
+
+              }),
+              {
+
+                status: 200,
+
+                headers: {
+
+                  "Content-Type":
+                    "application/json",
+
+                  "Access-Control-Allow-Origin":
+                    "*"
+                }
+              }
+            );
+          }
+        }
+
+
+        // =================================================
+        // IA
+        // =================================================
+
+        const result =
+          await env.AI.run(
+            "@cf/openai/gpt-oss-20b",
             {
-              status: 200,
-              headers: {
-                "Content-Type":
-                  "application/json",
-                "Access-Control-Allow-Origin":
-                  "*"
-              }
+
+              messages:
+                messages,
+
+              max_tokens:
+                1024
             }
           );
-        }
 
-        // =================================================
-        // IA PARA CONVERSACIÓN NORMAL
-        // =================================================
 
-        const result = await env.AI.run(
-          "@cf/openai/gpt-oss-20b",
-          {
-            messages: messages,
-            max_tokens: 1024
-          }
-        );
+        let answer =
+          "";
 
-        let answer = "";
 
         if (
           result &&
@@ -545,39 +699,25 @@ rocket_league
           result.choices.length > 0 &&
           result.choices[0].message
         ) {
+
           answer =
-            result.choices[0].message.content || "";
+            result
+              .choices[0]
+              .message
+              .content || "";
         }
 
+
         if (!answer) {
+
           answer =
             "He tenido un problema procesando la respuesta.";
         }
 
-        let parsed;
 
-        try {
-          parsed = JSON.parse(
-            answer
-              .replace(/^```json\s*/i, "")
-              .replace(/^```\s*/i, "")
-              .replace(/```\s*$/i, "")
-              .trim()
-          );
-        } catch {
-          parsed = {
-            reply: answer,
-            action: null
-          };
-        }
-
-        reply =
-          parsed.reply ||
-          answer;
-
-        action =
-          parsed.action ||
-          null;
+        // =================================================
+        // GUARDAR RESPUESTA
+        // =================================================
 
         await env.DB
           .prepare(
@@ -586,25 +726,36 @@ rocket_league
           .bind(
             sessionId,
             "assistant",
-            reply
+            answer
           )
           .run();
 
+
         return new Response(
           JSON.stringify({
-            response: reply,
-            action: action
+
+            response:
+              answer,
+
+            actions:
+              []
+
           }),
           {
+
             status: 200,
+
             headers: {
+
               "Content-Type":
                 "application/json",
+
               "Access-Control-Allow-Origin":
                 "*"
             }
           }
         );
+
 
       } catch (error) {
 
@@ -613,16 +764,26 @@ rocket_league
           error
         );
 
+
         return new Response(
           JSON.stringify({
-            error: "Error en Bruce",
-            details: String(error)
+
+            error:
+              "Error en Bruce",
+
+            details:
+              String(error)
+
           }),
           {
+
             status: 500,
+
             headers: {
+
               "Content-Type":
                 "application/json",
+
               "Access-Control-Allow-Origin":
                 "*"
             }
@@ -631,20 +792,26 @@ rocket_league
       }
     }
 
+
     // =====================================================
     // ASSETS
     // =====================================================
 
     if (env.ASSETS) {
-      return env.ASSETS.fetch(request);
+
+      return env.ASSETS.fetch(
+        request
+      );
     }
+
 
     return new Response(
       "Bruce está funcionando.",
       {
         status: 200,
         headers: {
-          "Content-Type": "text/plain"
+          "Content-Type":
+            "text/plain"
         }
       }
     );
