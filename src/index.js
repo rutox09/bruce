@@ -302,8 +302,17 @@ Respuesta:
           }
         );
       }
+        }
+
+    if (env.ASSETS) {
+      return env.ASSETS.fetch(request);
     }
 
-    return env.ASSETS.fetch(request);
+    return new Response("Bruce está funcionando.", {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain"
+      }
+    });
   }
 };
