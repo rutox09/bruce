@@ -68,83 +68,81 @@ function addMessage(text, type) {
 
 function speak(text) {
 
-    if (
-        !("speechSynthesis" in window)
-    ) {
-
+    if (!("speechSynthesis" in window)) {
         console.warn(
             "Este navegador no soporta síntesis de voz."
         );
-
         return;
     }
 
-
-    // Parar una respuesta anterior
     speechSynthesis.cancel();
 
-
     const utterance =
-        new SpeechSynthesisUtterance(
-            text
-        );
+        new SpeechSynthesisUtterance(text);
 
+    // Español
+    utterance.lang = "es-ES";
 
-    utterance.lang =
-        "es-ES";
+    // Voz más lenta y grave
+    utterance.rate = 0.88;
+    utterance.pitch = 0.65;
+    utterance.volume = 1.0;
 
-
-    utterance.rate =
-        1;
-
-
-    utterance.pitch =
-        0.9;
-
-
-    utterance.volume =
-        1;
-
-
-    // Buscar una voz española
     const voices =
         speechSynthesis.getVoices();
 
+    // Intentar encontrar una voz masculina española
+    const preferredNames = [
+        "Microsoft Jorge",
+        "Microsoft Pablo",
+        "Microsoft Alvaro",
+        "Google español",
+        "Google español de España"
+    ];
 
-    const spanishVoice =
-        voices.find(
-            voice =>
-                voice.lang &&
-                voice.lang
-                    .toLowerCase()
-                    .startsWith("es")
-        );
+    let selectedVoice = null;
 
+    for (const name of preferredNames) {
 
-    if (spanishVoice) {
+        selectedVoice =
+            voices.find(
+                voice =>
+                    voice.name
+                        .toLowerCase()
+                        .includes(
+                            name.toLowerCase()
+                        )
+            );
 
-        utterance.voice =
-            spanishVoice;
+        if (selectedVoice) {
+            break;
+        }
     }
 
+    // Si no encontramos una concreta,
+    // buscar cualquier voz española
+    if (!selectedVoice) {
 
-    utterance.onstart =
-        function() {
-
-            document.body.classList.add(
-                "bruce-speaking"
+        selectedVoice =
+            voices.find(
+                voice =>
+                    voice.lang &&
+                    voice.lang
+                        .toLowerCase()
+                        .startsWith("es")
             );
-        };
+    }
 
+    if (selectedVoice) {
 
-    utterance.onend =
-        function() {
+        utterance.voice =
+            selectedVoice;
 
-            document.body.classList.remove(
-                "bruce-speaking"
-            );
-        };
-
+        console.log(
+            "Voz de Bruce:",
+            selectedVoice.name
+        );
+    }
 
     speechSynthesis.speak(
         utterance
