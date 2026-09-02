@@ -8,7 +8,7 @@ const CORS_HEADERS = {
 
 
 /* =========================================================
-   RESPUESTAS HTTP
+   RESPUESTAS
 ========================================================= */
 
 function json(data, status = 200) {
@@ -91,6 +91,7 @@ async function saveMessage(
       .run();
 
   } catch (error) {
+
     console.error(
       "Error guardando mensaje:",
       error
@@ -108,6 +109,7 @@ async function getHistory(
   }
 
   try {
+
     const result =
       await env.DB
         .prepare(
@@ -148,158 +150,10 @@ async function deleteHistory(
 
 
 /* =========================================================
-   WEBS
-========================================================= */
-
-const websites = {
-
-  youtube: {
-    name: "YouTube",
-    aliases: [
-      "youtube",
-      "you tube",
-      "yt"
-    ],
-  },
-
-  twitch: {
-    name: "Twitch",
-    aliases: [
-      "twitch",
-      "twich"
-    ],
-  },
-
-  spotify: {
-    name: "Spotify",
-    aliases: [
-      "spotify"
-    ],
-  },
-
-  discord: {
-    name: "Discord",
-    aliases: [
-      "discord",
-      "dc"
-    ],
-  },
-
-  google: {
-    name: "Google",
-    aliases: [
-      "google"
-    ],
-  },
-
-  netflix: {
-    name: "Netflix",
-    aliases: [
-      "netflix"
-    ],
-  },
-};
-
-
-/* =========================================================
-   APLICACIONES
-========================================================= */
-
-const apps = {
-
-  chrome: {
-    name: "Chrome",
-    aliases: [
-      "chrome",
-      "google chrome"
-    ],
-  },
-
-  edge: {
-    name: "Edge",
-    aliases: [
-      "edge",
-      "microsoft edge"
-    ],
-  },
-
-  steam: {
-    name: "Steam",
-    aliases: [
-      "steam"
-    ],
-  },
-
-  epic: {
-    name: "Epic Games",
-    aliases: [
-      "epic",
-      "epic games"
-    ],
-  },
-
-  notepad: {
-    name: "Bloc de notas",
-    aliases: [
-      "bloc de notas",
-      "bloc notas",
-      "notepad"
-    ],
-  },
-  
-  tiktok: {
-    name: "Tik Tok",
-    aliases: [
-      "tiktok",
-      "Tiktok",
-      "TikTok",
-      "tik tok",
-      "Tik Tok"
-    ],
-  },
-
-  calculator: {
-    name: "Calculadora",
-    aliases: [
-      "calculadora",
-      "calculator"
-    ],
-  },
-};
-
-
-/* =========================================================
-   JUEGOS
-========================================================= */
-
-const games = {
-
-  rocket_league: {
-    name: "Rocket League",
-    aliases: [
-      "rocket league",
-      "rocketleague",
-      "rl"
-    ],
-  },
-
-  retrac: {
-    name: "Retrac",
-    aliases: [
-      "retrac",
-      "ret rac"
-    ],
-  },
-
-};
-
-
-/* =========================================================
-   DETECTAR ABRIR / CERRAR
+   TIPOS DE ÓRDENES
 ========================================================= */
 
 function wantsOpen(text) {
-
   return includesAny(text, [
     "abre",
     "abrir",
@@ -316,13 +170,13 @@ function wantsOpen(text) {
     "lanzar",
     "juega",
     "jugar",
+    "arranca",
+    "arrancar",
   ]);
-
 }
 
 
 function wantsClose(text) {
-
   return includesAny(text, [
     "cierra",
     "cerrar",
@@ -332,42 +186,15 @@ function wantsClose(text) {
     "detener",
     "quita",
     "quitar",
-    "ciera",
   ]);
-
-}
-
-
-function matchesAliases(
-  text,
-  aliases
-) {
-
-  return aliases.some(
-    (alias) => text.includes(alias)
-  );
-
 }
 
 
 /* =========================================================
-   DETECTAR ACCIONES
+   SISTEMA
 ========================================================= */
 
-function detectMultipleActions(text) {
-
-  const actions = [];
-
-  const open =
-    wantsOpen(text);
-
-  const close =
-    wantsClose(text);
-
-
-  /* -------------------------------------------------------
-     ORDENADOR
-  ------------------------------------------------------- */
+function detectSystemAction(text) {
 
   if (
     includesAny(text, [
@@ -380,12 +207,9 @@ function detectMultipleActions(text) {
       "apaga windows",
     ])
   ) {
-
-    return [
-      {
-        type: "shutdown_pc",
-      },
-    ];
+    return {
+      type: "shutdown_pc",
+    };
   }
 
 
@@ -397,18 +221,11 @@ function detectMultipleActions(text) {
       "cancelar apagado",
     ])
   ) {
-
-    return [
-      {
-        type: "cancel_shutdown",
-      },
-    ];
+    return {
+      type: "cancel_shutdown",
+    };
   }
 
-
-  /* -------------------------------------------------------
-     BRUCE
-  ------------------------------------------------------- */
 
   if (
     includesAny(text, [
@@ -420,12 +237,9 @@ function detectMultipleActions(text) {
       "dormir bruce",
     ])
   ) {
-
-    return [
-      {
-        type: "stop_agent",
-      },
-    ];
+    return {
+      type: "stop_agent",
+    };
   }
 
 
@@ -439,186 +253,70 @@ function detectMultipleActions(text) {
       "despertar bruce",
     ])
   ) {
-
-    return [
-      {
-        type: "wake_agent",
-      },
-    ];
+    return {
+      type: "wake_agent",
+    };
   }
 
 
-  /* -------------------------------------------------------
-     ABRIR
-  ------------------------------------------------------- */
-
-  if (open) {
-
-    for (
-      const [key, website]
-      of Object.entries(websites)
-    ) {
-
-      if (
-        matchesAliases(
-          text,
-          website.aliases
-        )
-      ) {
-
-        actions.push({
-          type: "website",
-          target: key,
-        });
-
-      }
-    }
+  return null;
+}
 
 
-    for (
-      const [key, app]
-      of Object.entries(apps)
-    ) {
+/* =========================================================
+   ACCIONES
+========================================================= */
 
-      if (
-        matchesAliases(
-          text,
-          app.aliases
-        )
-      ) {
+function detectActions(text) {
 
-        actions.push({
-          type: "app",
-          target: key,
-        });
+  const systemAction =
+    detectSystemAction(text);
 
-      }
-    }
-
-
-    for (
-      const [key, game]
-      of Object.entries(games)
-    ) {
-
-      if (
-        matchesAliases(
-          text,
-          game.aliases
-        )
-      ) {
-
-        actions.push({
-          type: "game",
-          target: key,
-        });
-
-      }
-    }
+  if (systemAction) {
+    return {
+      type: "direct",
+      actions: [systemAction],
+    };
   }
 
 
-  /* -------------------------------------------------------
-     CERRAR
-  ------------------------------------------------------- */
+  /*
+    Aquí está el cambio importante.
 
-  if (close) {
+    index.js YA NO necesita conocer
+    YouTube, Retrac, TikTok, etc.
 
-    for (
-      const [key, website]
-      of Object.entries(websites)
-    ) {
+    Simplemente pasa la orden completa
+    al agente local.
 
-      if (
-        matchesAliases(
-          text,
-          website.aliases
-        )
-      ) {
+    El agente consulta apps.json.
+  */
 
-        actions.push({
-          type: "close_website",
-          target: key,
-        });
+  const open =
+    wantsOpen(text);
 
-      }
-    }
+  const close =
+    wantsClose(text);
 
 
-    for (
-      const [key, app]
-      of Object.entries(apps)
-    ) {
+  if (open || close) {
 
-      if (
-        matchesAliases(
-          text,
-          app.aliases
-        )
-      ) {
-
-        actions.push({
-          type: "close",
-          target: key,
-        });
-
-      }
-    }
-
-
-    for (
-      const [key, game]
-      of Object.entries(games)
-    ) {
-
-      if (
-        matchesAliases(
-          text,
-          game.aliases
-        )
-      ) {
-
-        actions.push({
-          type: "close",
-          target: key,
-        });
-
-      }
-    }
+    return {
+      type: "command",
+      actions: [
+        {
+          type: "command",
+          command: text,
+        },
+      ],
+    };
   }
 
 
-  /* -------------------------------------------------------
-     QUITAR DUPLICADOS
-  ------------------------------------------------------- */
-
-  const unique = [];
-
-  const seen = new Set();
-
-
-  for (
-    const action
-    of actions
-  ) {
-
-    const id =
-      action.type +
-      ":" +
-      (action.target || "");
-
-
-    if (!seen.has(id)) {
-
-      seen.add(id);
-
-      unique.push(action);
-
-    }
-  }
-
-
-  return unique;
+  return {
+    type: "none",
+    actions: [],
+  };
 }
 
 
@@ -704,7 +402,6 @@ async function generateVoice(
     throw new Error(
       "Falta ELEVENLABS_API_KEY"
     );
-
   }
 
 
@@ -713,7 +410,6 @@ async function generateVoice(
     throw new Error(
       "Falta ELEVENLABS_VOICE_ID"
     );
-
   }
 
 
@@ -781,7 +477,6 @@ async function generateVoice(
       ": " +
       errorText
     );
-
   }
 
 
@@ -821,15 +516,15 @@ export default {
         null,
         {
           status: 204,
-          headers: CORS_HEADERS,
+          headers:
+            CORS_HEADERS,
         }
       );
-
     }
 
 
     /* =====================================================
-       GET /api/history
+       HISTORIAL
     ===================================================== */
 
     if (
@@ -854,12 +549,11 @@ export default {
       return json({
         history,
       });
-
     }
 
 
     /* =====================================================
-       DELETE /api/history
+       BORRAR HISTORIAL
     ===================================================== */
 
     if (
@@ -889,28 +583,20 @@ export default {
 
       } catch (error) {
 
-        console.error(
-          "Error eliminando historial:",
-          error
-        );
-
-
         return json(
           {
             error:
               error.message ||
-              "No se pudo borrar la conversación.",
+              "No se pudo borrar el historial.",
           },
           500
         );
-
       }
-
     }
 
 
     /* =====================================================
-       POST /api/speak
+       VOZ
     ===================================================== */
 
     if (
@@ -941,7 +627,6 @@ export default {
             },
             400
           );
-
         }
 
 
@@ -986,14 +671,12 @@ export default {
           },
           500
         );
-
       }
-
     }
 
 
     /* =====================================================
-       POST /api/chat
+       CHAT
     ===================================================== */
 
     if (
@@ -1031,7 +714,6 @@ export default {
             },
             400
           );
-
         }
 
 
@@ -1047,124 +729,72 @@ export default {
         );
 
 
-        /* ===============================================
-           ACCIONES DIRECTAS
-        =============================================== */
+        /* =================================================
+           DETECTAR ORDEN
+        ================================================= */
 
-        const actions =
-          detectMultipleActions(
+        const detected =
+          detectActions(
             cleanText
           );
 
 
         console.log(
           "Acciones detectadas:",
-          JSON.stringify(actions)
+          JSON.stringify(
+            detected.actions
+          )
         );
 
 
-        /* ===============================================
-           SI HAY ACCIONES
-        =============================================== */
+        /* =================================================
+           ACCIÓN DIRECTA
+        ================================================= */
 
-        if (actions.length > 0) {
+        if (
+          detected.type ===
+          "direct"
+        ) {
+
+          const action =
+            detected.actions[0];
+
 
           let responseText =
             "Hecho.";
 
 
-          const hasOpen =
-            actions.some(
-              (action) =>
-                action.type === "website" ||
-                action.type === "app" ||
-                action.type === "game"
-            );
-
-
-          const hasClose =
-            actions.some(
-              (action) =>
-                action.type === "close" ||
-                action.type === "close_website"
-            );
-
-
-          const hasShutdown =
-            actions.some(
-              (action) =>
-                action.type === "shutdown_pc"
-            );
-
-
-          const hasCancelShutdown =
-            actions.some(
-              (action) =>
-                action.type === "cancel_shutdown"
-            );
-
-
-          const hasStopBruce =
-            actions.some(
-              (action) =>
-                action.type === "stop_agent"
-            );
-
-
-          const hasWakeBruce =
-            actions.some(
-              (action) =>
-                action.type === "wake_agent"
-            );
-
-
-          if (hasShutdown) {
+          if (
+            action.type ===
+            "shutdown_pc"
+          ) {
 
             responseText =
-              "El ordenador se apagará en 30 segundos.";
+              "El ordenador se apagará en 15 segundos.";
 
           } else if (
-            hasCancelShutdown
+            action.type ===
+            "cancel_shutdown"
           ) {
 
             responseText =
               "He cancelado el apagado.";
 
           } else if (
-            hasStopBruce
+            action.type ===
+            "stop_agent"
           ) {
 
             responseText =
               "Bruce entrando en modo de espera.";
 
           } else if (
-            hasWakeBruce
+            action.type ===
+            "wake_agent"
           ) {
 
             responseText =
               "Bruce está activo.";
-
-          } else if (
-            hasOpen
-          ) {
-
-            responseText =
-              actions.length === 1
-                ? "Abriendo."
-                : "Abriendo " +
-                  actions.length +
-                  " elementos.";
-
-          } else if (
-            hasClose
-          ) {
-
-            responseText =
-              actions.length === 1
-                ? "Cerrando."
-                : "Cerrando " +
-                  actions.length +
-                  " elementos.";
           }
 
 
@@ -1190,16 +820,58 @@ export default {
               responseText,
 
             actions:
-              actions,
+              detected.actions,
 
           });
-
         }
 
 
-        /* ===============================================
+        /* =================================================
+           COMANDO PARA EL AGENTE LOCAL
+        ================================================= */
+
+        if (
+          detected.type ===
+          "command"
+        ) {
+
+          let responseText =
+            wantsClose(cleanText)
+              ? "Cerrando."
+              : "Abriendo.";
+
+
+          await saveMessage(
+            env,
+            sessionId,
+            "user",
+            userMessage
+          );
+
+
+          await saveMessage(
+            env,
+            sessionId,
+            "assistant",
+            responseText
+          );
+
+
+          return json({
+
+            response:
+              responseText,
+
+            actions:
+              detected.actions,
+
+          });
+        }
+
+
+        /* =================================================
            IA NORMAL
-        =============================================== */
+        ================================================= */
 
         const history =
           await getHistory(
@@ -1219,9 +891,9 @@ export default {
               "Be concise, intelligent, calm and useful. " +
               "Your personality is serious, sophisticated " +
               "and efficient. " +
-              "Do not claim to have performed actions " +
-              "unless an action was actually returned " +
-              "by the system.",
+              "Do not claim to have opened, closed or " +
+              "controlled anything unless the system " +
+              "actually returned an action.",
           },
 
           ...history,
@@ -1283,9 +955,7 @@ export default {
           },
           500
         );
-
       }
-
     }
 
 
@@ -1298,14 +968,11 @@ export default {
       return env.ASSETS.fetch(
         request
       );
-
     }
 
 
     return textResponse(
       "Bruce está funcionando."
     );
-
   },
-
 };
