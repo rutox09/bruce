@@ -1,3 +1,4 @@
+javascript
 let sessionId =
     localStorage.getItem(
         "bruce_session_id"
@@ -29,25 +30,25 @@ const AGENT_URL =
 const SPEAK_URL =
     "https://brucewayne.aleixruto.workers.dev/api/speak";
 
+const HISTORY_URL =
+    "https://brucewayne.aleixruto.workers.dev/api/history";
+
 
 // =====================================================
 // ELEMENTOS
 // =====================================================
 
 const chat =
-    document.getElementById(
-        "chat"
-    );
+    document.getElementById("chat");
 
 const inputArea =
-    document.getElementById(
-        "inputArea"
-    );
+    document.getElementById("inputArea");
 
 const input =
-    document.getElementById(
-        "messageInput"
-    );
+    document.getElementById("messageInput");
+
+const clearButton =
+    document.getElementById("clearChat");
 
 
 // =====================================================
@@ -60,9 +61,7 @@ function addMessage(
 ) {
 
     const message =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     message.className =
         "message " + type;
@@ -80,7 +79,7 @@ function addMessage(
 
 
 // =====================================================
-// BRUCE HABLA CON ELEVENLABS
+// BRUCE HABLA
 // =====================================================
 
 async function speak(
@@ -96,7 +95,6 @@ async function speak(
         console.log(
             "Generando voz de Bruce..."
         );
-
 
         const response =
             await fetch(
@@ -146,16 +144,16 @@ async function speak(
             );
 
 
-        audio.volume =
-            1.0;
+        audio.volume = 1.0;
 
 
         audio.onended =
-            function() {
+            function () {
 
                 URL.revokeObjectURL(
                     audioUrl
                 );
+
             };
 
 
@@ -168,12 +166,13 @@ async function speak(
             "No se pudo reproducir la voz:",
             error
         );
+
     }
 }
 
 
 // =====================================================
-// EJECUTAR ACCIÓN
+// EJECUTAR UNA ACCIÓN
 // =====================================================
 
 async function executeAction(
@@ -205,8 +204,7 @@ async function executeAction(
                     },
 
                     body: JSON.stringify({
-                        action:
-                            action
+                        action: action
                     })
                 }
             );
@@ -228,6 +226,7 @@ async function executeAction(
                 "El agente rechazó:",
                 data.message
             );
+
         }
 
 
@@ -237,6 +236,7 @@ async function executeAction(
             "Error con Bruce Agent:",
             error
         );
+
     }
 }
 
@@ -263,6 +263,7 @@ async function executeActions(
             await executeAction(
                 action
             );
+
         }
 
         return;
@@ -274,6 +275,7 @@ async function executeActions(
         await executeAction(
             data.action
         );
+
     }
 }
 
@@ -407,32 +409,26 @@ async function sendMessage() {
             error.message,
             "bruce"
         );
+
     }
 }
 
 
 // =====================================================
-// HISTORIAL
+// CARGAR HISTORIAL
 // =====================================================
 
 async function loadHistory() {
 
     try {
 
-        const historyURL =
-            WORKER_URL.replace(
-                "/api/chat",
-                "/api/history"
-            ) +
-            "?sessionId=" +
-            encodeURIComponent(
-                sessionId
-            );
-
-
         const response =
             await fetch(
-                historyURL
+                HISTORY_URL +
+                "?sessionId=" +
+                encodeURIComponent(
+                    sessionId
+                )
             );
 
 
@@ -440,14 +436,36 @@ async function loadHistory() {
             await response.json();
 
 
-        if (!data.messages) {
+        console.log(
+            "Historial recibido:",
+            data
+        );
+
+
+        // IMPORTANTE:
+        // El Worker devuelve "history",
+        // no "messages".
+
+        if (
+            !Array.isArray(
+                data.history
+            )
+        ) {
+
             return;
         }
 
 
+        // Ocultamos el mensaje inicial
+        // del HTML porque vamos a cargar
+        // el historial real.
+
+        chat.innerHTML = "";
+
+
         for (
             const message
-            of data.messages
+            of data.history
         ) {
 
             if (
@@ -459,6 +477,7 @@ async function loadHistory() {
                     message.content,
                     "user"
                 );
+
             }
 
 
@@ -471,7 +490,24 @@ async function loadHistory() {
                     message.content,
                     "bruce"
                 );
+
             }
+
+        }
+
+
+        // Si no hay historial,
+        // mostramos mensaje inicial.
+
+        if (
+            data.history.length === 0
+        ) {
+
+            addMessage(
+                "Buenas. Soy Bruce. ¿En qué puedo ayudarte?",
+                "bruce"
+            );
+
         }
 
 
@@ -481,6 +517,88 @@ async function loadHistory() {
             "No se pudo cargar el historial:",
             error
         );
+
+    }
+}
+
+
+// =====================================================
+// BORRAR CONVERSACIÓN
+// =====================================================
+
+async function clearConversation() {
+
+    const confirmed =
+        confirm(
+            "¿Quieres borrar toda la conversación?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                HISTORY_URL +
+                "?sessionId=" +
+                encodeURIComponent(
+                    sessionId
+                ),
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error ||
+                "No se pudo borrar la conversación."
+            );
+
+        }
+
+
+        // Limpiar pantalla
+
+        chat.innerHTML = "";
+
+
+        // Mensaje inicial
+
+        addMessage(
+            "Buenas. Soy Bruce. ¿En qué puedo ayudarte?",
+            "bruce"
+        );
+
+
+        console.log(
+            "Conversación eliminada."
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Error borrando conversación:",
+            error
+        );
+
+
+        addMessage(
+            "No se pudo borrar la conversación.",
+            "bruce"
+        );
+
     }
 }
 
@@ -489,15 +607,34 @@ async function loadHistory() {
 // FORMULARIO
 // =====================================================
 
-inputArea.addEventListener(
-    "submit",
-    function(event) {
+if (inputArea) {
 
-        event.preventDefault();
+    inputArea.addEventListener(
+        "submit",
+        function(event) {
 
-        sendMessage();
-    }
-);
+            event.preventDefault();
+
+            sendMessage();
+
+        }
+    );
+
+}
+
+
+// =====================================================
+// BOTÓN BORRAR
+// =====================================================
+
+if (clearButton) {
+
+    clearButton.addEventListener(
+        "click",
+        clearConversation
+    );
+
+}
 
 
 // =====================================================
@@ -505,3 +642,4 @@ inputArea.addEventListener(
 // =====================================================
 
 loadHistory();
+
