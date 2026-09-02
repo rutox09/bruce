@@ -19,14 +19,26 @@
         B
       </div>
 
-      <div>
+      <div class="header-info">
         <h1>Bruce</h1>
         <p>Asistente personal · Online</p>
       </div>
 
-      <div class="status">
-        <span class="status-dot"></span>
-        Online
+      <div class="header-actions">
+
+        <button
+          id="clearChat"
+          class="clear-chat"
+          type="button"
+        >
+          Borrar conversación
+        </button>
+
+        <div class="status">
+          <span class="status-dot"></span>
+          <span>Online</span>
+        </div>
+
       </div>
 
     </header>
@@ -48,6 +60,7 @@
         id="micButton"
         class="mic-button"
         title="Hablar con Bruce"
+        aria-label="Hablar con Bruce"
       >
         🎙
       </button>
@@ -57,6 +70,7 @@
         type="text"
         placeholder="Escribe un mensaje..."
         autocomplete="off"
+        spellcheck="false"
       >
 
       <button
