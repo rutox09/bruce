@@ -185,14 +185,6 @@ const websites = {
     ],
   },
 
-  tiktok: {
-    name: "TikTok",
-    aliases: [
-      "tiktok",
-      "tik tok"
-    ],
-  },
-
   google: {
     name: "Google",
     aliases: [
@@ -253,6 +245,16 @@ const apps = {
       "bloc notas",
       "notepad"
     ],
+  },
+  
+  tiktok: {
+    name: "Tik Tok",
+    aliases: [
+      "tiktok",
+      "Tiktok",
+      "TikTok",
+      "tik tok",
+      "Tik Tok"
   },
 
   calculator: {
