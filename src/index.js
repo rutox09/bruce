@@ -276,6 +276,14 @@ const games = {
     ],
   },
 
+  retrac: {
+    name: "Retrac",
+    aliases: [
+      "retrac",
+      "ret rac"
+    ],
+  },
+
 };
 
 
@@ -317,6 +325,7 @@ function wantsClose(text) {
     "detener",
     "quita",
     "quitar",
+    "ciera",
   ]);
 
 }
