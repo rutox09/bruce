@@ -15,7 +15,6 @@ export interface Env {
 ========================================================= */
 
 function normalizeText(text) {
-
   if (!text) {
     return "";
   }
@@ -29,12 +28,9 @@ function normalizeText(text) {
 
 
 function includesAny(text, values) {
-
   return values.some(
     (value) =>
-      text.includes(
-        normalizeText(value)
-      )
+      text.includes(normalizeText(value))
   );
 }
 
@@ -44,7 +40,6 @@ function includesAny(text, values) {
 ========================================================= */
 
 function corsHeaders() {
-
   return {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers":
@@ -55,17 +50,9 @@ function corsHeaders() {
 }
 
 
-function jsonResponse(
-  data,
-  status = 200
-) {
-
+function jsonResponse(data, status = 200) {
   return new Response(
-    JSON.stringify(
-      data,
-      null,
-      2
-    ),
+    JSON.stringify(data, null, 2),
     {
       status,
       headers: {
@@ -83,9 +70,7 @@ function jsonResponse(
 ========================================================= */
 
 function wantsClose(text) {
-
-  const normalized =
-    normalizeText(text);
+  const normalized = normalizeText(text);
 
   return includesAny(
     normalized,
@@ -110,9 +95,7 @@ function wantsClose(text) {
 ========================================================= */
 
 function detectSystemAction(text) {
-
-  const normalized =
-    normalizeText(text);
+  const normalized = normalizeText(text);
 
 
   // -------------------------------------------------------
@@ -132,11 +115,9 @@ function detectSystemAction(text) {
       ]
     )
   ) {
-
     return {
       type: "command",
-      command:
-        "cierra powershell",
+      command: "cierra powershell",
     };
   }
 
@@ -158,11 +139,9 @@ function detectSystemAction(text) {
       ]
     )
   ) {
-
     return {
       type: "command",
-      command:
-        "reinicia el agente",
+      command: "reinicia el agente",
     };
   }
 
@@ -171,11 +150,9 @@ function detectSystemAction(text) {
     normalized === "reinicia" ||
     normalized === "reiniciar"
   ) {
-
     return {
       type: "command",
-      command:
-        "reinicia el agente",
+      command: "reinicia el agente",
     };
   }
 
@@ -200,11 +177,9 @@ function detectSystemAction(text) {
       ]
     )
   ) {
-
     return {
       type: "command",
-      command:
-        "apagate",
+      command: "apagate",
     };
   }
 
@@ -226,11 +201,9 @@ function detectSystemAction(text) {
       ]
     )
   ) {
-
     return {
       type: "command",
-      command:
-        "despiertate",
+      command: "despiertate",
     };
   }
 
@@ -251,11 +224,9 @@ function detectSystemAction(text) {
       ]
     )
   ) {
-
     return {
       type: "command",
-      command:
-        "apaga el ordenador",
+      command: "apaga el ordenador",
     };
   }
 
@@ -275,11 +246,9 @@ function detectSystemAction(text) {
       ]
     )
   ) {
-
     return {
       type: "command",
-      command:
-        "cancela el apagado",
+      command: "cancela el apagado",
     };
   }
 
@@ -292,32 +261,24 @@ function detectSystemAction(text) {
    DETECTAR VARIAS ACCIONES
 ========================================================= */
 
-function detectMultipleActions(
-  message
-) {
-
+function detectMultipleActions(message) {
   if (!message) {
     return [];
   }
 
 
-  const original =
-    String(message).trim();
+  const original = String(message).trim();
 
 
-  // Quitamos "Bruce" únicamente
-  // cuando aparece al principio.
+  // Quitamos "Bruce" solo si está al principio.
   //
   // Bruce, abre YouTube
-  // -> abre YouTube
+  // ->
+  // abre YouTube
 
-  const clean =
-    original
-      .replace(
-        /^bruce[\s,:-]*/i,
-        ""
-      )
-      .trim();
+  const clean = original
+    .replace(/^bruce[\s,:-]*/i, "")
+    .trim();
 
 
   if (!clean) {
@@ -325,8 +286,18 @@ function detectMultipleActions(
   }
 
 
-  const normalized =
-    normalizeText(clean);
+  const normalized = normalizeText(clean);
+
+
+  console.log(
+    "[Bruce] Comando recibido:",
+    clean
+  );
+
+  console.log(
+    "[Bruce] Comando normalizado:",
+    normalized
+  );
 
 
   /* =======================================================
@@ -334,13 +305,10 @@ function detectMultipleActions(
   ======================================================= */
 
   const systemAction =
-    detectSystemAction(
-      clean
-    );
+    detectSystemAction(clean);
 
 
   if (systemAction) {
-
     return [
       systemAction
     ];
@@ -348,7 +316,31 @@ function detectMultipleActions(
 
 
   /* =======================================================
-     ABRIR / CERRAR
+     RETRAC
+     
+     Esto fuerza la detección de Retrac antes de pasar
+     por la lógica general de abrir/cerrar.
+  ======================================================= */
+
+  if (
+    normalized === "abre retrac" ||
+    normalized === "abrir retrac" ||
+    normalized === "inicia retrac" ||
+    normalized === "iniciar retrac" ||
+    normalized === "juega retrac" ||
+    normalized === "jugar retrac"
+  ) {
+    return [
+      {
+        type: "command",
+        command: "abre retrac",
+      },
+    ];
+  }
+
+
+  /* =======================================================
+     ABRIR / CERRAR WEBS, APPS Y JUEGOS
   ======================================================= */
 
   const openWords = [
@@ -385,22 +377,20 @@ function detectMultipleActions(
      SEPARAR VARIAS ACCIONES
   ======================================================= */
 
-  const parts =
-    clean
-      .split(/\s+y\s+/i)
-      .map(
-        (part) =>
-          part.trim()
-      )
-      .filter(Boolean);
+  const parts = clean
+    .split(/\s+y\s+/i)
+    .map(
+      (part) =>
+        part.trim()
+    )
+    .filter(Boolean);
 
 
   const actions = [];
 
 
   for (
-    const part
-    of parts
+    const part of parts
   ) {
 
     const partNormalized =
@@ -415,8 +405,7 @@ function detectMultipleActions(
     // -----------------------------------------------------
 
     for (
-      const word
-      of openWords
+      const word of openWords
     ) {
 
       if (
@@ -447,8 +436,7 @@ function detectMultipleActions(
     // -----------------------------------------------------
 
     for (
-      const word
-      of closeWords
+      const word of closeWords
     ) {
 
       if (
@@ -470,6 +458,12 @@ function detectMultipleActions(
   }
 
 
+  console.log(
+    "[Bruce] Acciones detectadas:",
+    actions
+  );
+
+
   return actions;
 }
 
@@ -478,12 +472,8 @@ function detectMultipleActions(
    DETECT ACTIONS
 ========================================================= */
 
-function detectActions(
-  message
-) {
-
+function detectActions(message) {
   if (!message) {
-
     return {
       type: "none",
       actions: [],
@@ -492,9 +482,7 @@ function detectActions(
 
 
   const actions =
-    detectMultipleActions(
-      message
-    );
+    detectMultipleActions(message);
 
 
   if (
@@ -526,7 +514,6 @@ async function saveMessage(
   role,
   content
 ) {
-
   try {
 
     await env.DB
@@ -550,7 +537,6 @@ async function saveMessage(
       "Error guardando mensaje:",
       error
     );
-
   }
 }
 
@@ -563,7 +549,6 @@ async function getHistory(
   env,
   sessionId
 ) {
-
   if (!sessionId) {
     return [];
   }
@@ -584,9 +569,7 @@ async function getHistory(
           LIMIT 100
           `
         )
-        .bind(
-          sessionId
-        )
+        .bind(sessionId)
         .all();
 
 
@@ -612,7 +595,6 @@ async function generateAIResponse(
   env,
   messages
 ) {
-
   try {
 
     const result =
@@ -634,20 +616,16 @@ async function generateAIResponse(
     ) {
 
       if (
-        "response" in result
-        &&
+        "response" in result &&
         typeof result.response === "string"
       ) {
-
         content =
           result.response;
 
       } else if (
-        "content" in result
-        &&
+        "content" in result &&
         typeof result.content === "string"
       ) {
-
         content =
           result.content;
 
@@ -655,7 +633,6 @@ async function generateAIResponse(
         result.output &&
         typeof result.output === "string"
       ) {
-
         content =
           result.output;
 
@@ -663,19 +640,14 @@ async function generateAIResponse(
         result.result &&
         typeof result.result === "string"
       ) {
-
         content =
           result.result;
-
       }
     }
 
 
     if (!content) {
-
-      return (
-        "No he podido generar una respuesta."
-      );
+      return "No he podido generar una respuesta.";
     }
 
 
@@ -703,7 +675,6 @@ async function generateVoice(
 ) {
 
   if (!env.ELEVENLABS_API_KEY) {
-
     throw new Error(
       "Falta ELEVENLABS_API_KEY"
     );
@@ -711,7 +682,6 @@ async function generateVoice(
 
 
   if (!env.ELEVENLABS_VOICE_ID) {
-
     throw new Error(
       "Falta ELEVENLABS_VOICE_ID"
     );
@@ -741,7 +711,6 @@ async function generateVoice(
         },
 
         body: JSON.stringify({
-
           text,
 
           model_id:
@@ -751,14 +720,17 @@ async function generateVoice(
             "mp3_44100_128",
 
           voice_settings: {
+            stability:
+              0.45,
 
-            stability: 0.45,
+            similarity_boost:
+              0.85,
 
-            similarity_boost: 0.85,
+            style:
+              0.35,
 
-            style: 0.35,
-
-            use_speaker_boost: true,
+            use_speaker_boost:
+              true,
           },
         }),
       }
@@ -796,8 +768,7 @@ export default {
     ===================================================== */
 
     if (
-      request.method ===
-      "OPTIONS"
+      request.method === "OPTIONS"
     ) {
 
       return new Response(
@@ -812,9 +783,7 @@ export default {
 
 
     const url =
-      new URL(
-        request.url
-      );
+      new URL(request.url);
 
 
     /* =====================================================
@@ -822,8 +791,7 @@ export default {
     ===================================================== */
 
     if (
-      url.pathname ===
-      "/favicon.ico"
+      url.pathname === "/favicon.ico"
     ) {
 
       return new Response(
@@ -957,18 +925,17 @@ export default {
 
 
         console.log(
-          "[Bruce] Acciones detectadas:",
+          "[Bruce] Detectado:",
           detected
         );
 
 
         /* =================================================
-           SI ES UNA ACCIÓN DEL PC
+           ACCIÓN DEL ORDENADOR
         ================================================= */
 
         if (
-          detected.type ===
-            "command" &&
+          detected.type === "command" &&
           detected.actions.length > 0
         ) {
 
@@ -1045,7 +1012,7 @@ export default {
 
 
         /* =================================================
-           OBTENER HISTORIAL
+           HISTORIAL
         ================================================= */
 
         const history =
@@ -1056,7 +1023,7 @@ export default {
 
 
         /* =================================================
-           CONSTRUIR CONTEXTO
+           CONTEXTO
         ================================================= */
 
         const messages = [
@@ -1069,27 +1036,30 @@ export default {
               `
 Eres Bruce, un asistente personal.
 
-Tu función principal es ayudar al usuario
-de forma natural, clara y útil.
+Tu función es ayudar al usuario de forma
+natural, clara y útil.
 
-Puedes responder preguntas normales,
-explicar cosas, ayudar con programación,
-organización, estudios y otros temas.
+Puedes responder preguntas, explicar cosas,
+ayudar con programación, organización,
+estudios y otros temas.
 
-El usuario también dispone de un agente local
-llamado Bruce Agent para controlar su ordenador.
+El usuario dispone de un agente local
+llamado Bruce Agent para controlar su
+ordenador.
 
-Las acciones del ordenador NO debes inventarlas
-ni describirlas como si las hubieras ejecutado.
-Cuando exista una acción directa del sistema,
-el Worker se encargará de enviarla al agente local.
+Las acciones del ordenador NO deben
+inventarse ni describirse como ejecutadas
+cuando no existe una acción directa.
 
-No generes comandos de PowerShell,
+Las acciones directas del ordenador son
+gestionadas por el Worker y por Bruce Agent.
+
+No generes comandos PowerShell,
 CMD, Invoke-RestMethod ni código de terminal
 para controlar el ordenador.
 
-Habla en español salvo que el usuario pida
-otro idioma.
+Habla en español salvo que el usuario
+pida otro idioma.
 
 Responde de forma natural.
               `.trim(),
@@ -1112,6 +1082,7 @@ Responde de forma natural.
         ================================================= */
 
         let responseText;
+
 
         try {
 
