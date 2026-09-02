@@ -598,13 +598,22 @@ async function generateAIResponse(
   try {
 
     const result =
-      await env.AI.run(
-        "@cf/openai/gpt-oss-20b",
-        {
-          messages,
-          max_tokens: 1024,
-        }
-      );
+        await env.AI.run(
+          "@cf/openai/gpt-oss-20b",
+          {
+            messages: [
+              {
+                role: "system",
+                content: "Responde siempre en español."
+              },
+              {
+                role: "user",
+                content: "Hola Bruce"
+              }
+            ],
+            max_tokens: 128,
+          }
+        );
 
 
     let content = "";
