@@ -1,4 +1,8 @@
 javascript
+// =====================================================
+// SESIÓN
+// =====================================================
+
 let sessionId =
     localStorage.getItem(
         "bruce_session_id"
@@ -50,6 +54,9 @@ const input =
 const clearButton =
     document.getElementById("clearChat");
 
+const micButton =
+    document.getElementById("micButton");
+
 
 // =====================================================
 // MOSTRAR MENSAJE
@@ -59,6 +66,10 @@ function addMessage(
     text,
     type
 ) {
+
+    if (!chat) {
+        return;
+    }
 
     const message =
         document.createElement("div");
@@ -79,7 +90,7 @@ function addMessage(
 
 
 // =====================================================
-// BRUCE HABLA
+// BRUCE HABLA CON ELEVENLABS
 // =====================================================
 
 async function speak(
@@ -95,6 +106,7 @@ async function speak(
         console.log(
             "Generando voz de Bruce..."
         );
+
 
         const response =
             await fetch(
@@ -250,6 +262,7 @@ async function executeActions(
 ) {
 
     if (
+        data &&
         Array.isArray(
             data.actions
         )
@@ -270,7 +283,10 @@ async function executeActions(
     }
 
 
-    if (data.action) {
+    if (
+        data &&
+        data.action
+    ) {
 
         await executeAction(
             data.action
@@ -286,6 +302,11 @@ async function executeActions(
 
 async function sendMessage() {
 
+    if (!input) {
+        return;
+    }
+
+
     const text =
         input.value.trim();
 
@@ -295,11 +316,15 @@ async function sendMessage() {
     }
 
 
+    // Mostrar mensaje del usuario
+
     addMessage(
         text,
         "user"
     );
 
+
+    // Vaciar input
 
     input.value = "";
 
@@ -379,19 +404,23 @@ async function sendMessage() {
             "He recibido tu mensaje.";
 
 
+        // Mostrar respuesta
+
         addMessage(
             reply,
             "bruce"
         );
 
 
-        // Bruce habla
+        // Voz
+
         await speak(
             reply
         );
 
 
-        // Ejecutar acciones
+        // Acciones del PC
+
         await executeActions(
             data
         );
@@ -400,6 +429,7 @@ async function sendMessage() {
     } catch (error) {
 
         console.error(
+            "Error enviando mensaje:",
             error
         );
 
@@ -420,6 +450,11 @@ async function sendMessage() {
 
 async function loadHistory() {
 
+    if (!chat) {
+        return;
+    }
+
+
     try {
 
         const response =
@@ -432,6 +467,16 @@ async function loadHistory() {
             );
 
 
+        if (!response.ok) {
+
+            throw new Error(
+                "HTTP " +
+                response.status
+            );
+
+        }
+
+
         const data =
             await response.json();
 
@@ -442,9 +487,7 @@ async function loadHistory() {
         );
 
 
-        // IMPORTANTE:
-        // El Worker devuelve "history",
-        // no "messages".
+        // El Worker devuelve "history"
 
         if (
             !Array.isArray(
@@ -456,12 +499,13 @@ async function loadHistory() {
         }
 
 
-        // Ocultamos el mensaje inicial
-        // del HTML porque vamos a cargar
-        // el historial real.
+        // Limpiar el mensaje
+        // inicial del HTML
 
         chat.innerHTML = "";
 
+
+        // Cargar mensajes
 
         for (
             const message
@@ -496,8 +540,7 @@ async function loadHistory() {
         }
 
 
-        // Si no hay historial,
-        // mostramos mensaje inicial.
+        // Si no hay mensajes
 
         if (
             data.history.length === 0
@@ -518,6 +561,21 @@ async function loadHistory() {
             error
         );
 
+
+        // Si falla D1,
+        // no dejamos el chat vacío
+
+        if (
+            chat.children.length === 0
+        ) {
+
+            addMessage(
+                "Buenas. Soy Bruce. ¿En qué puedo ayudarte?",
+                "bruce"
+            );
+
+        }
+
     }
 }
 
@@ -528,8 +586,13 @@ async function loadHistory() {
 
 async function clearConversation() {
 
+    if (!chat) {
+        return;
+    }
+
+
     const confirmed =
-        confirm(
+        window.confirm(
             "¿Quieres borrar toda la conversación?"
         );
 
@@ -540,6 +603,11 @@ async function clearConversation() {
 
 
     try {
+
+        console.log(
+            "Borrando conversación..."
+        );
+
 
         const response =
             await fetch(
@@ -582,7 +650,7 @@ async function clearConversation() {
 
 
         console.log(
-            "Conversación eliminada."
+            "Conversación eliminada correctamente."
         );
 
 
@@ -624,6 +692,33 @@ if (inputArea) {
 
 
 // =====================================================
+// ENTER PARA ENVIAR
+// =====================================================
+
+if (input) {
+
+    input.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                sendMessage();
+
+            }
+
+        }
+    );
+
+}
+
+
+// =====================================================
 // BOTÓN BORRAR
 // =====================================================
 
@@ -632,6 +727,26 @@ if (clearButton) {
     clearButton.addEventListener(
         "click",
         clearConversation
+    );
+
+}
+
+
+// =====================================================
+// BOTÓN MICRÓFONO
+// =====================================================
+
+if (micButton) {
+
+    micButton.addEventListener(
+        "click",
+        function() {
+
+            console.log(
+                "Botón de micrófono pulsado."
+            );
+
+        }
     );
 
 }
