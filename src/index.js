@@ -267,56 +267,227 @@ function detectSystemAction(text) {
    ACCIONES
 ========================================================= */
 
-function detectActions(text) {
+function detectMultipleActions(message) {
 
-  const systemAction =
-    detectSystemAction(text);
+    if (!message) {
+        return [];
+    }
 
-  if (systemAction) {
-    return {
-      type: "direct",
-      actions: [systemAction],
-    };
-  }
+    const original = message.trim();
 
+    // Quitamos "Bruce" del principio.
+    const clean = original
+        .replace(/^bruce[\s,:-]*/i, "")
+        .trim();
 
-  /*
-    Aquí está el cambio importante.
+    if (!clean) {
+        return [];
+    }
 
-    index.js YA NO necesita conocer
-    YouTube, Retrac, TikTok, etc.
-
-    Simplemente pasa la orden completa
-    al agente local.
-
-    El agente consulta apps.json.
-  */
-
-  const open =
-    wantsOpen(text);
-
-  const close =
-    wantsClose(text);
+    const normalized = clean
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
 
 
-  if (open || close) {
+    // =====================================================
+    // COMANDOS DEL PROPIO BRUCE
+    // =====================================================
 
-    return {
-      type: "command",
-      actions: [
-        {
-          type: "command",
-          command: text,
-        },
-      ],
-    };
-  }
+    if (
+        normalized.includes("cierra powershell") ||
+        normalized.includes("cerrar powershell") ||
+        normalized.includes("cierra el powershell") ||
+        normalized.includes("cerrar el powershell") ||
+        normalized.includes("cierra power shell") ||
+        normalized.includes("cerrar power shell")
+    ) {
+
+        return [
+            {
+                type: "command",
+                command: "cierra powershell"
+            }
+        ];
+    }
 
 
-  return {
-    type: "none",
-    actions: [],
-  };
+    if (
+        normalized.includes("reinicia el agente") ||
+        normalized.includes("reiniciar el agente") ||
+        normalized.includes("reinicia bruce") ||
+        normalized.includes("reiniciar bruce")
+    ) {
+
+        return [
+            {
+                type: "command",
+                command: "reinicia el agente"
+            }
+        ];
+    }
+
+
+    if (
+        normalized === "reinicia" ||
+        normalized === "reiniciar"
+    ) {
+
+        return [
+            {
+                type: "command",
+                command: "reinicia el agente"
+            }
+        ];
+    }
+
+
+    if (
+        normalized.includes("apagate") ||
+        normalized.includes("apagate bruce") ||
+        normalized.includes("duerme") ||
+        normalized.includes("duerme bruce") ||
+        normalized.includes("deten el agente") ||
+        normalized.includes("para el agente")
+    ) {
+
+        return [
+            {
+                type: "command",
+                command: "apagate"
+            }
+        ];
+    }
+
+
+    if (
+        normalized.includes("despiertate") ||
+        normalized.includes("despierta bruce") ||
+        normalized.includes("despierta el agente") ||
+        normalized.includes("activa bruce")
+    ) {
+
+        return [
+            {
+                type: "command",
+                command: "despiertate"
+            }
+        ];
+    }
+
+
+    if (
+        normalized.includes("apaga el ordenador") ||
+        normalized.includes("apagar el ordenador") ||
+        normalized.includes("apaga el pc") ||
+        normalized.includes("apagar el pc")
+    ) {
+
+        return [
+            {
+                type: "command",
+                command: "apaga el ordenador"
+            }
+        ];
+    }
+
+
+    if (
+        normalized.includes("cancela el apagado") ||
+        normalized.includes("cancelar el apagado")
+    ) {
+
+        return [
+            {
+                type: "command",
+                command: "cancela el apagado"
+            }
+        ];
+    }
+
+
+    // =====================================================
+    // ABRIR / CERRAR ELEMENTOS
+    // =====================================================
+
+    const commandWords = [
+        "abre ",
+        "abrir ",
+        "inicia ",
+        "iniciar ",
+        "ejecuta ",
+        "ejecutar ",
+        "lanza ",
+        "lanzar ",
+        "cierra ",
+        "cerrar ",
+        "termina ",
+        "terminar "
+    ];
+
+
+    const hasCommandWord =
+        commandWords.some(
+            word => normalized.includes(word)
+        );
+
+
+    if (hasCommandWord) {
+
+        // Separar órdenes múltiples:
+        //
+        // "abre youtube y abre spotify"
+        //
+        // en:
+        //
+        // "abre youtube"
+        // "abre spotify"
+
+        const parts = clean
+            .split(/\s+y\s+/i)
+            .map(part => part.trim())
+            .filter(Boolean);
+
+
+        const actions = [];
+
+        for (const part of parts) {
+
+            const partNormalized = part
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+
+
+            const startsWithCommand =
+                commandWords.some(
+                    word =>
+                        partNormalized.startsWith(
+                            word.trim()
+                        )
+                );
+
+
+            if (
+                startsWithCommand ||
+                parts.length === 1
+            ) {
+
+                actions.push({
+                    type: "command",
+                    command: part
+                });
+            }
+        }
+
+
+        if (actions.length > 0) {
+            return actions;
+        }
+    }
+
+
+    return [];
 }
 
 
