@@ -34,96 +34,40 @@ error
 
 
 /* =========================================================
-   ACCIONES
    ACCIONES / COMANDOS
 ========================================================= */
 
 function detectMultipleActions(message) {
 
-    if (!message) {
-        return [];
-    }
   if (!message) {
     return [];
   }
 
-    const original = message.trim();
-  const original =
-    String(message).trim();
+  const original = String(message).trim();
 
+  // Quitamos "Bruce" únicamente si está al principio.
+  // Ejemplo:
+  // "Bruce, abre YouTube"
+  // -> "abre YouTube"
+  const clean = original
+    .replace(/^bruce[\s,:-]*/i, "")
+    .trim();
 
-  /*
-   * Quitamos "Bruce" solamente si aparece
-   * al principio.
-   *
-   * Ejemplo:
-   * "Bruce, cierra powershell"
-   *
-   * -> "cierra powershell"
-   */
-
-  const clean =
-    original
-      .replace(
-        /^bruce[\s,:-]*/i,
-        ""
-      )
-      .trim();
-
-    // Quitamos "Bruce" del principio.
-    const clean = original
-        .replace(/^bruce[\s,:-]*/i, "")
-        .trim();
-
-    if (!clean) {
-        return [];
-    }
   if (!clean) {
     return [];
   }
 
-    const normalized = clean
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
+  const normalized = normalizeText(clean);
 
-  const normalized =
-    normalizeText(clean);
 
-    // =====================================================
-    // COMANDOS DEL PROPIO BRUCE
-    // =====================================================
-
-    if (
-        normalized.includes("cierra powershell") ||
-        normalized.includes("cerrar powershell") ||
-        normalized.includes("cierra el powershell") ||
-        normalized.includes("cerrar el powershell") ||
-        normalized.includes("cierra power shell") ||
-        normalized.includes("cerrar power shell")
-    ) {
   /* =======================================================
      COMANDOS INTERNOS DE BRUCE
   ======================================================= */
-
-        return [
-            {
-                type: "command",
-                command: "cierra powershell"
-            }
-        ];
-    }
 
   // ---------------------------------------------------------
   // POWERSHELL
   // ---------------------------------------------------------
 
-    if (
-        normalized.includes("reinicia el agente") ||
-        normalized.includes("reiniciar el agente") ||
-        normalized.includes("reinicia bruce") ||
-        normalized.includes("reiniciar bruce")
-    ) {
   if (
     includesAny(normalized, [
       "cierra powershell",
@@ -135,13 +79,6 @@ function detectMultipleActions(message) {
     ])
   ) {
 
-        return [
-            {
-                type: "command",
-                command: "reinicia el agente"
-            }
-        ];
-    }
     return [
       {
         type: "command",
@@ -151,21 +88,10 @@ function detectMultipleActions(message) {
   }
 
 
-    if (
-        normalized === "reinicia" ||
-        normalized === "reiniciar"
-    ) {
   // ---------------------------------------------------------
   // REINICIAR AGENTE
   // ---------------------------------------------------------
 
-        return [
-            {
-                type: "command",
-                command: "reinicia el agente"
-            }
-        ];
-    }
   if (
     includesAny(normalized, [
       "reinicia el agente",
@@ -185,22 +111,7 @@ function detectMultipleActions(message) {
     ];
   }
 
-    if (
-        normalized.includes("apagate") ||
-        normalized.includes("apagate bruce") ||
-        normalized.includes("duerme") ||
-        normalized.includes("duerme bruce") ||
-        normalized.includes("deten el agente") ||
-        normalized.includes("para el agente")
-    ) {
 
-        return [
-            {
-                type: "command",
-                command: "apagate"
-            }
-        ];
-    }
   if (
     normalized === "reinicia" ||
     normalized === "reiniciar"
@@ -214,22 +125,9 @@ function detectMultipleActions(message) {
     ];
   }
 
-    if (
-        normalized.includes("despiertate") ||
-        normalized.includes("despierta bruce") ||
-        normalized.includes("despierta el agente") ||
-        normalized.includes("activa bruce")
-    ) {
 
-        return [
-            {
-                type: "command",
-                command: "despiertate"
-            }
-        ];
-    }
   // ---------------------------------------------------------
-  // DORMIR
+  // DORMIR AGENTE
   // ---------------------------------------------------------
 
   if (
@@ -240,17 +138,13 @@ function detectMultipleActions(message) {
       "duerme",
       "duerme bruce",
       "deten el agente",
+      "detener el agente",
       "para el agente",
+      "parar el agente",
       "detente",
     ])
   ) {
 
-    if (
-        normalized.includes("apaga el ordenador") ||
-        normalized.includes("apagar el ordenador") ||
-        normalized.includes("apaga el pc") ||
-        normalized.includes("apagar el pc")
-    ) {
     return [
       {
         type: "command",
@@ -261,7 +155,7 @@ function detectMultipleActions(message) {
 
 
   // ---------------------------------------------------------
-  // DESPERTAR
+  // DESPERTAR AGENTE
   // ---------------------------------------------------------
 
   if (
@@ -283,13 +177,6 @@ function detectMultipleActions(message) {
     ];
   }
 
-        return [
-            {
-                type: "command",
-                command: "apaga el ordenador"
-            }
-        ];
-    }
 
   // ---------------------------------------------------------
   // APAGAR ORDENADOR
@@ -340,7 +227,7 @@ function detectMultipleActions(message) {
      ABRIR / CERRAR WEBS, APPS Y JUEGOS
   ======================================================= */
 
-  const commandWords = [
+  const openWords = [
     "abre",
     "abrir",
     "abrime",
@@ -355,138 +242,107 @@ function detectMultipleActions(message) {
     "jugar",
     "arranca",
     "arrancar",
+  ];
+
+
+  const closeWords = [
     "cierra",
     "cerrar",
     "cerrame",
     "cerrarme",
     "termina",
     "terminar",
+    "deten",
+    "detener",
   ];
 
 
-  const hasCommandWord =
-    commandWords.some(
-      (word) =>
-        normalized.startsWith(word + " ") ||
-        normalized === word
-    );
+  // =======================================================
+  // VARIAS ACCIONES
+  // =======================================================
 
-
-  if (!hasCommandWord) {
-    return [];
-  }
-
-
-  /*
-   * Soportar varias acciones:
-   *
-   * "abre youtube y abre spotify"
-   *
-   * ->
-   *
-   * "abre youtube"
-   * "abre spotify"
-   */
-
-  const parts =
-    clean
-      .split(/\s+y\s+/i)
-      .map((part) => part.trim())
-      .filter(Boolean);
+  const parts = clean
+    .split(/\s+y\s+/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
 
 
   const actions = [];
 
 
-  for (
-    const part
-    of parts
-  ) {
+  for (const part of parts) {
 
     const partNormalized =
       normalizeText(part);
 
 
-    const startsWithCommand =
-      commandWords.some(
-        (word) =>
-          partNormalized === word ||
-          partNormalized.startsWith(
-            word + " "
-          )
-      );
+    let matched = false;
 
 
-if (
-        normalized.includes("cancela el apagado") ||
-        normalized.includes("cancelar el apagado")
-      startsWithCommand ||
-      parts.length === 1
-) {
+    // -----------------------------------------------------
+    // ABRIR
+    // -----------------------------------------------------
 
-        return [
-            {
-                type: "command",
-                command: "cancela el apagado"
-            }
-        ];
-      actions.push({
-        type: "command",
-        command: part,
-      });
-}
+    for (const word of openWords) {
+
+      if (
+        partNormalized === word ||
+        partNormalized.startsWith(word + " ")
+      ) {
+
+        actions.push({
+          type: "command",
+          command: part,
+        });
+
+        matched = true;
+        break;
+      }
+    }
+
+
+    if (matched) {
+      continue;
+    }
+
+
+    // -----------------------------------------------------
+    // CERRAR
+    // -----------------------------------------------------
+
+    for (const word of closeWords) {
+
+      if (
+        partNormalized === word ||
+        partNormalized.startsWith(word + " ")
+      ) {
+
+        actions.push({
+          type: "command",
+          command: part,
+        });
+
+        matched = true;
+        break;
+      }
+    }
   }
 
 
-    // =====================================================
-    // ABRIR / CERRAR ELEMENTOS
-    // =====================================================
-
-    const commandWords = [
-        "abre ",
-        "abrir ",
-        "inicia ",
-        "iniciar ",
-        "ejecuta ",
-        "ejecutar ",
-        "lanza ",
-        "lanzar ",
-        "cierra ",
-        "cerrar ",
-        "termina ",
-        "terminar "
-    ];
   return actions;
 }
 
 
-    const hasCommandWord =
-        commandWords.some(
-            word => normalized.includes(word)
-        );
 /* =========================================================
    DETECT ACTIONS
 ========================================================= */
 
 function detectActions(message) {
 
-    if (hasCommandWord) {
   const cleanText =
     normalizeText(message);
 
-        // Separar órdenes múltiples:
-        //
-        // "abre youtube y abre spotify"
-        //
-        // en:
-        //
-        // "abre youtube"
-        // "abre spotify"
 
-        const parts = clean
-            .split(/\s+y\s+/i)
-            .map(part => part.trim())
-            .filter(Boolean);
   if (!cleanText) {
 
     return {
@@ -495,71 +351,20 @@ function detectActions(message) {
     };
   }
 
-        const actions = [];
 
-        for (const part of parts) {
   /* =======================================================
-     SISTEMA
-  ======================================================= */
-
-            const partNormalized = part
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "");
-  const systemAction =
-    detectSystemAction(
-      cleanText
-    );
-
-
-            const startsWithCommand =
-                commandWords.some(
-                    word =>
-                        partNormalized.startsWith(
-                            word.trim()
-                        )
-                );
-  if (systemAction) {
-
-    return {
-      type: "direct",
-      actions: [
-        systemAction
-      ],
-    };
-  }
-
-            if (
-                startsWithCommand ||
-                parts.length === 1
-            ) {
-
-                actions.push({
-                    type: "command",
-                    command: part
-                });
-            }
-        }
-  /* =======================================================
-     COMANDOS
+     PRIMERO: COMANDOS DIRECTOS
   ======================================================= */
 
   const actions =
-    detectMultipleActions(
-      message
-    );
+    detectMultipleActions(message);
 
-        if (actions.length > 0) {
-            return actions;
-        }
-    }
 
   if (
     Array.isArray(actions) &&
     actions.length > 0
   ) {
 
-    return [];
     return {
       type: "command",
       actions,
