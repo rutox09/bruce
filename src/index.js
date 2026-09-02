@@ -255,6 +255,7 @@ const apps = {
       "TikTok",
       "tik tok",
       "Tik Tok"
+      ],
   },
 
   calculator: {
