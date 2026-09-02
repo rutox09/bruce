@@ -1,18 +1,11 @@
-javascript
 // =====================================================
 // SESIÓN
 // =====================================================
 
-let sessionId =
-    localStorage.getItem(
-        "bruce_session_id"
-    );
-
+let sessionId = localStorage.getItem("bruce_session_id");
 
 if (!sessionId) {
-
-    sessionId =
-        crypto.randomUUID();
+    sessionId = crypto.randomUUID();
 
     localStorage.setItem(
         "bruce_session_id",
@@ -51,21 +44,12 @@ const inputArea =
 const input =
     document.getElementById("messageInput");
 
-const clearButton =
-    document.getElementById("clearChat");
-
-const micButton =
-    document.getElementById("micButton");
-
 
 // =====================================================
 // MOSTRAR MENSAJE
 // =====================================================
 
-function addMessage(
-    text,
-    type
-) {
+function addMessage(text, type) {
 
     if (!chat) {
         return;
@@ -80,9 +64,7 @@ function addMessage(
     message.textContent =
         text;
 
-    chat.appendChild(
-        message
-    );
+    chat.appendChild(message);
 
     chat.scrollTop =
         chat.scrollHeight;
@@ -90,12 +72,10 @@ function addMessage(
 
 
 // =====================================================
-// BRUCE HABLA CON ELEVENLABS
+// BRUCE HABLA
 // =====================================================
 
-async function speak(
-    text
-) {
+async function speak(text) {
 
     if (!text) {
         return;
@@ -106,7 +86,6 @@ async function speak(
         console.log(
             "Generando voz de Bruce..."
         );
-
 
         const response =
             await fetch(
@@ -125,7 +104,6 @@ async function speak(
                 }
             );
 
-
         if (!response.ok) {
 
             const errorText =
@@ -139,25 +117,18 @@ async function speak(
             return;
         }
 
-
         const audioBlob =
             await response.blob();
-
 
         const audioUrl =
             URL.createObjectURL(
                 audioBlob
             );
 
-
         const audio =
-            new Audio(
-                audioUrl
-            );
-
+            new Audio(audioUrl);
 
         audio.volume = 1.0;
-
 
         audio.onended =
             function () {
@@ -168,9 +139,7 @@ async function speak(
 
             };
 
-
         await audio.play();
-
 
     } catch (error) {
 
@@ -187,20 +156,16 @@ async function speak(
 // EJECUTAR UNA ACCIÓN
 // =====================================================
 
-async function executeAction(
-    action
-) {
+async function executeAction(action) {
 
     if (!action) {
         return;
     }
 
-
     console.log(
         "Ejecutando acción:",
         action
     );
-
 
     try {
 
@@ -221,16 +186,13 @@ async function executeAction(
                 }
             );
 
-
         const data =
             await response.json();
-
 
         console.log(
             "Bruce Agent:",
             data
         );
-
 
         if (!data.success) {
 
@@ -240,7 +202,6 @@ async function executeAction(
             );
 
         }
-
 
     } catch (error) {
 
@@ -254,18 +215,14 @@ async function executeAction(
 
 
 // =====================================================
-// EJECUTAR VARIAS ACCIONES
+// VARIAS ACCIONES
 // =====================================================
 
-async function executeActions(
-    data
-) {
+async function executeActions(data) {
 
     if (
         data &&
-        Array.isArray(
-            data.actions
-        )
+        Array.isArray(data.actions)
     ) {
 
         for (
@@ -281,7 +238,6 @@ async function executeActions(
 
         return;
     }
-
 
     if (
         data &&
@@ -306,28 +262,20 @@ async function sendMessage() {
         return;
     }
 
-
     const text =
         input.value.trim();
-
 
     if (!text) {
         return;
     }
 
-
     // Mostrar mensaje del usuario
-
     addMessage(
         text,
         "user"
     );
 
-
-    // Vaciar input
-
     input.value = "";
-
 
     try {
 
@@ -354,19 +302,15 @@ async function sendMessage() {
                 }
             );
 
-
         const responseText =
             await response.text();
-
 
         console.log(
             "Bruce respondió:",
             responseText
         );
 
-
         let data;
-
 
         try {
 
@@ -386,7 +330,6 @@ async function sendMessage() {
             return;
         }
 
-
         if (data.error) {
 
             addMessage(
@@ -398,33 +341,25 @@ async function sendMessage() {
             return;
         }
 
-
         const reply =
             data.response ||
             "He recibido tu mensaje.";
 
-
         // Mostrar respuesta
-
         addMessage(
             reply,
             "bruce"
         );
 
-
         // Voz
-
         await speak(
             reply
         );
 
-
-        // Acciones del PC
-
+        // Acciones
         await executeActions(
             data
         );
-
 
     } catch (error) {
 
@@ -433,13 +368,11 @@ async function sendMessage() {
             error
         );
 
-
         addMessage(
             "Error de conexión: " +
             error.message,
             "bruce"
         );
-
     }
 }
 
@@ -454,7 +387,6 @@ async function loadHistory() {
         return;
     }
 
-
     try {
 
         const response =
@@ -466,7 +398,6 @@ async function loadHistory() {
                 )
             );
 
-
         if (!response.ok) {
 
             throw new Error(
@@ -476,19 +407,16 @@ async function loadHistory() {
 
         }
 
-
         const data =
             await response.json();
-
 
         console.log(
             "Historial recibido:",
             data
         );
 
-
-        // El Worker devuelve "history"
-
+        // IMPORTANTE:
+        // Cloudflare devuelve "history"
         if (
             !Array.isArray(
                 data.history
@@ -498,15 +426,11 @@ async function loadHistory() {
             return;
         }
 
-
-        // Limpiar el mensaje
-        // inicial del HTML
-
+        // Borrar el mensaje inicial
+        // que viene en index.html
         chat.innerHTML = "";
 
-
-        // Cargar mensajes
-
+        // Recuperar conversación
         for (
             const message
             of data.history
@@ -522,10 +446,7 @@ async function loadHistory() {
                     "user"
                 );
 
-            }
-
-
-            if (
+            } else if (
                 message.role ===
                 "assistant"
             ) {
@@ -539,9 +460,7 @@ async function loadHistory() {
 
         }
 
-
-        // Si no hay mensajes
-
+        // Si todavía no hay conversación
         if (
             data.history.length === 0
         ) {
@@ -553,118 +472,11 @@ async function loadHistory() {
 
         }
 
-
     } catch (error) {
 
         console.error(
             "No se pudo cargar el historial:",
             error
-        );
-
-
-        // Si falla D1,
-        // no dejamos el chat vacío
-
-        if (
-            chat.children.length === 0
-        ) {
-
-            addMessage(
-                "Buenas. Soy Bruce. ¿En qué puedo ayudarte?",
-                "bruce"
-            );
-
-        }
-
-    }
-}
-
-
-// =====================================================
-// BORRAR CONVERSACIÓN
-// =====================================================
-
-async function clearConversation() {
-
-    if (!chat) {
-        return;
-    }
-
-
-    const confirmed =
-        window.confirm(
-            "¿Quieres borrar toda la conversación?"
-        );
-
-
-    if (!confirmed) {
-        return;
-    }
-
-
-    try {
-
-        console.log(
-            "Borrando conversación..."
-        );
-
-
-        const response =
-            await fetch(
-                HISTORY_URL +
-                "?sessionId=" +
-                encodeURIComponent(
-                    sessionId
-                ),
-                {
-                    method: "DELETE"
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.error ||
-                "No se pudo borrar la conversación."
-            );
-
-        }
-
-
-        // Limpiar pantalla
-
-        chat.innerHTML = "";
-
-
-        // Mensaje inicial
-
-        addMessage(
-            "Buenas. Soy Bruce. ¿En qué puedo ayudarte?",
-            "bruce"
-        );
-
-
-        console.log(
-            "Conversación eliminada correctamente."
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Error borrando conversación:",
-            error
-        );
-
-
-        addMessage(
-            "No se pudo borrar la conversación.",
-            "bruce"
         );
 
     }
@@ -692,7 +504,7 @@ if (inputArea) {
 
 
 // =====================================================
-// ENTER PARA ENVIAR
+// ENTER
 // =====================================================
 
 if (input) {
@@ -719,42 +531,7 @@ if (input) {
 
 
 // =====================================================
-// BOTÓN BORRAR
-// =====================================================
-
-if (clearButton) {
-
-    clearButton.addEventListener(
-        "click",
-        clearConversation
-    );
-
-}
-
-
-// =====================================================
-// BOTÓN MICRÓFONO
-// =====================================================
-
-if (micButton) {
-
-    micButton.addEventListener(
-        "click",
-        function() {
-
-            console.log(
-                "Botón de micrófono pulsado."
-            );
-
-        }
-    );
-
-}
-
-
-// =====================================================
 // INICIO
 // =====================================================
 
 loadHistory();
-
