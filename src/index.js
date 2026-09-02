@@ -157,14 +157,16 @@ const websites = {
     name: "YouTube",
     aliases: [
       "youtube",
-      "you tube"
+      "you tube",
+      "yt"
     ],
   },
 
   twitch: {
     name: "Twitch",
     aliases: [
-      "twitch"
+      "twitch",
+      "twich"
     ],
   },
 
@@ -178,7 +180,8 @@ const websites = {
   discord: {
     name: "Discord",
     aliases: [
-      "discord"
+      "discord",
+      "dc"
     ],
   },
 
@@ -272,7 +275,8 @@ const games = {
     name: "Rocket League",
     aliases: [
       "rocket league",
-      "rocketleague"
+      "rocketleague",
+      "rl"
     ],
   },
 
